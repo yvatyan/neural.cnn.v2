@@ -21,7 +21,7 @@ namespace neural {
 			Buffer(matrix1d<double>* data);
 			Buffer(matrix2d<double>* data);
 			Buffer(matrix3d<double>* data);
-			// data container constructors
+			// container constructors
 			Buffer(int x, double def = 0);
 			Buffer(int y, int x, double def = 0);
 			Buffer(int z, int y, int x, double def = 0);

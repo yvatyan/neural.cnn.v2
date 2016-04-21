@@ -1,10 +1,13 @@
 #ifndef NEURALFUNCTIONS_H_
 #define NEURALFUNCTIONS_H_
 
+#include <string>
+
 namespace neural {
 	class Function {
 		private:
 			double(*function) (double, bool);
+			std::string funcName;
 		public:
 			class Activation {
 				public:
@@ -30,6 +33,13 @@ namespace neural {
 					static double yuv(double value, bool accumulate);
 					static double sum(double value, bool accumulate);
 			};
+			
+			Function(double(*func) (double, bool));
+			Function(double(*func) (double, bool), const std::string& setName);
+			Function(const std::string& name);
+			
+			double operator()(double value, bool accumulate);
+			std::string Name() const;
 	};
 }
 

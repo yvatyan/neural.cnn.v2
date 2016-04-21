@@ -1,6 +1,8 @@
 #ifndef MULTIDDATA_H_
 #define MULTIDDATA_H_
 
+#include <vector>
+
 template<typename T>
 class matrix1d : private std::vector<T> {
 	public:

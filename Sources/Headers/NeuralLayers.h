@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "NeuralFunctions.h"
+#include "NeuralData.h"
 
 namespace neural {
 	class ILayer {
@@ -19,8 +20,9 @@ namespace neural {
 			virtual ~ILayer();
 			
 			virtual void CalculateOutput(ILayer* prevLayer) = 0;
-			virtual void CalculateDeltas(ILayer* prev_layer) = 0
-			virtual void DoCorrections() = 0;
+			virtual void CalculateDeltas(ILayer* prev_layer) = 0;
+
+			virtual void DoCorrections() { return; }
 			virtual std::string Properties() const = 0;
 			
 			Function LayerFunction() const;
@@ -56,7 +58,6 @@ namespace neural {
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
-			// void DoCorrections();
 			
 			std::string Properties() const;
 	};
@@ -81,7 +82,6 @@ namespace neural {
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
-			void DoCorrections();
 			
 			std::string Properties() const;			
 	};
@@ -96,7 +96,6 @@ namespace neural {
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
-			void DoCorrections();
 			
 			std::string Properties() const;			
 	};

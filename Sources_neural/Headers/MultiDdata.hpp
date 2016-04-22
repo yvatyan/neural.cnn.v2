@@ -13,7 +13,10 @@ class matrix1d : private std::vector<T> {
 		matrix1d(const matrix1d& _copy)
 			: std::vector<T>(_copy) {};
 		
-		size_t width() const {
+		size_t Width() const {
+			return std::vector<T>::size();
+		}
+		size_t Size() const {
 			return std::vector<T>::size();
 		}
 		T& operator[](int _index) {
@@ -38,11 +41,14 @@ class matrix2d : private std::vector< std::vector<T> > {
 		const std::vector<T, std::allocator<T> > & operator[](int _index) const {
 			return std::vector< std::vector<T> >::operator[](_index);
 		}
-		const int height() const {
+		size_t Height() const {
 			return std::vector< std::vector<T> >::size();
 		}
-		const int width() const {
+		size_t Width() const {
 			return std::vector< std::vector<T> >::operator[](0).size();
+		}
+		size_t Size() const {
+			return Height() * Width();
 		}
 };
 template<typename T>
@@ -60,14 +66,17 @@ class matrix3d :	private std::vector<std::vector< std::vector<T> > > {
 		const std::vector<std::vector<T, std::allocator<T> > >& operator[](int _index) const {
 			return std::vector<std::vector< std::vector<T> > >::operator[](_index);
 		}
-		const int depth() const {
+		size_t Depth() const {
 			return std::vector<std::vector< std::vector<T> > >::size();
 		}
-		const int height() const {
+		size_t Height() const {
 			return std::vector<std::vector< std::vector<T> > >::operator[](0).size();
 		}
-		const int width() const {
+		size_t Width() const {
 			return std::vector<std::vector< std::vector<T> > >::operator[](0).operator[](0).size();
+		}
+		size_t Size() const {
+			return Depth() * Height() * Width();
 		}
 };
 

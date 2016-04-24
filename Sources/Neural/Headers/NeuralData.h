@@ -10,9 +10,15 @@ namespace neural {
 			matrix2d<double>* member2d;
 			matrix3d<double>* member3d;
 			
+			bool container_mode;
+
 			size_t width_in_2d;
 			size_t width_in_3d;
 			size_t height_in_3d;
+
+			void checkRange(int x) const ;
+			void checkRange(int y, int x) const ;
+			void checkRange(int z, int y, int x) const ;
 
 			double& get1dFrom2d(int x) const ;
 			double& get1dFrom3d(int x) const ;

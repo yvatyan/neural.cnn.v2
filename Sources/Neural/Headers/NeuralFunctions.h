@@ -4,43 +4,57 @@
 #include <string>
 
 namespace neural {
-	class Function {
+	class FunctionCollection {
 		private:
-			double(*function) (double, bool);
-			std::string funcName;
-		public:
 			class Activation {
+				private:
+					double accumulated_sum;
 				public:
-					static double softMax(double value, bool accumulate);
-					static double softStep(double value, bool accumulate);
-					static double softPlus(double value, bool accumulate);
-					static double softSign(double value, bool accumulate);
-					static double binaryStep(double value, bool accumulate);
-					static double tanH(double value, bool accumulate);
-					static double arcTan(double value, bool accumulate);
-					static double indentity(double value, bool accumulate);
-					static double bentIdentity(double value, bool accumulate);
-					static double gaussian(double value, bool accumulate);
+					double SoftMax() const ;
+					double SoftStep() const ;
+					double SoftPlus() const ;
+					double SoftSign() const ;
+					double BinaryStep() const ;
+					double TanH() const ;
+					double ArcTan() const ;
+					double Identity() const ;
+					double BentIdentity() const ;
+					double Gaussian() const ;
+
+					void accumulate(double value);
 			};
 			class Combination {
+				private:
+					double accumulated_sum;
 				public:
-					static double max(double value, bool accumulate);
-					static double min(double value, bool accumulate);
-					static double mean(double value, bool accumulate);
-					static double maxQty(double value, bool accumulate);
-					static double minQty(double value, bool accumulate);
-					static double hdtv(double value, bool accumulate);
-					static double yuv(double value, bool accumulate);
-					static double sum(double value, bool accumulate);
+					double Maximum() const ;
+					double Minimum() const ;
+					double Mean()const ;
+					double MaxBinaryQty() const ;
+					double MinBinaryQty() const ;
+					double Hdtv() const ;
+					double Yuv() const ;
+					double Sum() const ;
+
+					void accumulate(double value);
 			};
-			
-			Function(double(*func) (double, bool));
-			Function(double(*func) (double, bool), const std::string& setName);
-			Function(const std::string& name);
-			
-			double operator()(double value, bool accumulate);
-			std::string Name() const;
+
+			Activation A;
+			Combination C;
+		public:	
+			const Activation& Activation() const {
+				return A;
+			}
+			const Combination& Combination() const {
+				return C;
+			}
+			void Accumulate(double value) {
+				A.accumulate(value);
+				C.accumulate(value)
+			}
 	};
 }
+
+#include "../NeuralFunctions.cpp"
 
 #endif

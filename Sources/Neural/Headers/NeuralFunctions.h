@@ -10,8 +10,10 @@ namespace neural {
 				private:
 					double accumulated_sum;
 				public:
-					double SoftMax() const ;
-					double SoftStep() const ;
+					Activation();
+
+					double SoftMax(double param) const ;
+					double SoftStep(double param) const ;
 					double SoftPlus() const ;
 					double SoftSign() const ;
 					double BinaryStep() const ;
@@ -22,21 +24,32 @@ namespace neural {
 					double Gaussian() const ;
 
 					void accumulate(double value);
+					void erase();
 			};
 			class Combination {
 				private:
 					double accumulated_sum;
+					double accumulated_bool_sum;
+					double element_qty;
+					double max_element;
+					double min_element;
+					
+					void init();
 				public:
+					Combination();
+
 					double Maximum() const ;
 					double Minimum() const ;
 					double Mean()const ;
-					double MaxBinaryQty() const ;
-					double MinBinaryQty() const ;
-					double Hdtv() const ;
-					double Yuv() const ;
+					double MaxBooleanQty() const ;
+					double MinBooleanQty() const ;
+					double GreyscaleHDTV(double red, double green, double blue) const ;
+					double GreyscaleYUV(double red, double green, double blue) const ;
 					double Sum() const ;
+					double BooleanSum() const ;
 
 					void accumulate(double value);
+					void erase();
 			};
 
 			Activation A;
@@ -50,7 +63,11 @@ namespace neural {
 			}
 			void Accumulate(double value) {
 				A.accumulate(value);
-				C.accumulate(value)
+				C.accumulate(value);
+			}
+			void ClearStorage() {
+				A.erase();
+				C.erase();
 			}
 	};
 }

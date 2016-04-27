@@ -59,6 +59,29 @@ namespace neural {
 			Activation A;
 			Combination C;
 		public:	
+			enum Name {
+				SoftMax = 0,
+				SoftStep = 1,
+				SoftPlus = 2,
+				SoftSign = 3,
+				BinaryStep = 4,
+				TanH = 5,
+				ArcTan = 6,
+				Identity = 7,
+				BentIdentity = 8,
+				Gaussian = 9,
+
+				Maximum = 128,
+				Minimum = 129 ,
+				Mean = 130,
+				MaxQtyBoolean = 131,
+				MinQtyBoolean = 132,
+				GreyscaleHDTV = 133,
+				GreyscaleYUV = 134,
+				Sum = 135,
+				BooleanSum = 136,
+				Normalize = 137
+			};
 			const Activation& Activation() const {
 				return A;
 			}
@@ -73,6 +96,8 @@ namespace neural {
 				A.erase();
 				C.erase();
 			}
+			static const std::string& FunctionName(FunctionCollection::Name nameEnum) const;
+			static const std::string& FunctionType(FunctionCollection::Name nameEnum) const;
 	};
 }
 

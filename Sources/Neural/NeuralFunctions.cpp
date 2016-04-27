@@ -99,3 +99,34 @@ void FunctionCollection::Combination::accumulate(double value) {
 void FunctionCollection::Combination::erase() {
 	init();
 }
+const std::string& FunctionName(FunctionCollection::Name nameEnum) const {
+		switch(nameEnum) {
+			case	SoftMax		:	return "SoftMax";
+			case	SoftStep	:	return "SoftStep";
+			case	SoftPlus	:	return "SoftPlus";
+			case	SoftSign	:	return "SoftSign";
+			case	BinaryStep	:	return "BinaryStep";
+			case	TanH		:	return "TanH";
+			case	ArcTan		:	return "ArcTan";
+			case	Identity	:	return "Identity";
+			case	BentIdentity	:	return "BentIdentity";
+			case	Gaussian	:	return "Gaussian";
+
+			case	Maximum		:	return "Maximum";
+			case	Minimum		:	return "Minimum";
+			case	Mean		:	return "Mean";
+			case	MaxQtyBoolean	:	return "MaxQtyBoolean";
+			case	MinQtyBoolean	:	return "MinQtyBoolean";
+			case	GreyscaleHDTV	:	return "GreyscaleHDTV";
+			case	GreyscaleYUV	:	return "GreyscaleYUV";
+			case	Sum		:	return "Sum";
+			case	BooleanSum	:	return "BooleanSum";
+			case	Normalize	:	return "Normalize";
+
+			default			:	return "undefined";
+
+		};
+}
+const std::string& FunctionType(FunctionCollection::Name nameEnum) const {
+	return (nameEnum & 128 == 128 ? "Combination" : "Activation");
+}

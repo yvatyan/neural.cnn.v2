@@ -9,6 +9,9 @@ namespace neural {
 			class Activation {
 				private:
 					double accumulated_sum;
+					double accumulated_e_sum;
+
+					void init();
 				public:
 					Activation();
 
@@ -41,12 +44,13 @@ namespace neural {
 					double Maximum() const ;
 					double Minimum() const ;
 					double Mean()const ;
-					double MaxBooleanQty() const ;
-					double MinBooleanQty() const ;
+					double MaxQtyBoolean() const ;
+					double MinQtyBoolean() const ;
 					double GreyscaleHDTV(double red, double green, double blue) const ;
 					double GreyscaleYUV(double red, double green, double blue) const ;
 					double Sum() const ;
 					double BooleanSum() const ;
+					double Normalize(double value) const ;
 
 					void accumulate(double value);
 					void erase();

@@ -4,11 +4,15 @@
 
 using namespace neural;
 
-FunctionCollection::Activation::Activation() {
+void FunctionCollection::Activation::init() {
 	accumulated_sum = 0.;
+	accumulated_e_sum = 0.;
+}
+FunctionCollection::Activation::Activation() {
+	init();
 }
 double FunctionCollection::Activation::SoftMax(double value) const {
-	return std::pow(M_E, value) / accumulated_sum;
+	return std::pow(M_E, value) / accumulated_e_sum;
 }
 double FunctionCollection::Activation::SoftStep(double value) const {
 	return 1. / ( 1. + std::pow( M_E, -1.*value*accumulated_sum ) );
@@ -28,17 +32,21 @@ double FunctionCollection::Activation::TanH() const {
 double FunctionCollection::Activation::Identity() const {
 	return accumulated_sum;
 }
+double FunctionCollection::Activation::ArcTan() const {
+	return atan(accumulated_sum);
+}
 double FunctionCollection::Activation::BentIdentity() const {
-	return ( 2. / (1. + std::pow(M_E, -2.*accumulated_sum)) ) - 1.; 
+	return ( std::sqrt( accumulated_sum*accumulated_sum + 1) - 1 ) / 2 + accumulated_sum;
 }
 double FunctionCollection::Activation::Gaussian() const {
 	return std::pow(M_E, -1.*accumulated_sum*accumulated_sum);
 }
 void FunctionCollection::Activation::accumulate(double value) {
 	accumulated_sum += value;
+	accumulated_e_sum += std::pow(M_E, value);
 }
 void FunctionCollection::Activation::erase() {
-	accumulated_sum = 0.;
+	init();
 }
 
 void FunctionCollection::Combination::init() {
@@ -60,10 +68,10 @@ double FunctionCollection::Combination::Minimum() const {
 double FunctionCollection::Combination::Mean() const {
 	return accumulated_sum / element_qty;
 }
-double FunctionCollection::Combination::MaxBooleanQty() const {
+double FunctionCollection::Combination::MaxQtyBoolean() const {
 	return (accumulated_bool_sum > element_qty / 2. ? 1. : 0.);
 }
-double FunctionCollection::Combination::MinBooleanQty() const {
+double FunctionCollection::Combination::MinQtyBoolean() const {
 	return (accumulated_bool_sum < element_qty / 2. ? 1. : 0.);
 }
 double FunctionCollection::Combination::GreyscaleHDTV(double red, double green, double blue) const {
@@ -77,6 +85,9 @@ double FunctionCollection::Combination::Sum() const {
 }
 double FunctionCollection::Combination::BooleanSum() const {
 	return accumulated_bool_sum;
+}
+double FunctionCollection::Combination::Normalize(double value) const {
+	return value / accumulated_sum;
 }
 void FunctionCollection::Combination::accumulate(double value) {
 	accumulated_sum += value;

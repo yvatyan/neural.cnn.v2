@@ -11,16 +11,18 @@ namespace neural {
 	class ILayer {
 		public:
 			enum Type {
+				Input,
 				Convolution,
 				Pulling,
 				FullConnected,
 				GreyScalling,
-				Simplifying
+				Simplifying,
+				Output
 			};
 		protected:
+			Buffer* output;
+			Buffer* deltas;
 			std::string layerName;
-			Buffer output;
-			Buffer deltas;
 			FunctionCollection f_collection;
 			FunctionCollection::Name functionName;
 			Ilayer::Type layerType;
@@ -34,9 +36,15 @@ namespace neural {
 
 			virtual const std::string& Properties() const = 0;
 			
-			const std::string& LayerFunctionName() const;
-			const std::string& LayerTypeName() const;
+			const std::string LayerFunctionName() const;
+			const std::string LayerTypeName() const;
 			const std::string& LayerName() const;
+	};
+	class Input : public ILayer {
+		public:
+			Input(const std::string& name);
+
+			const std::string& Properties() const ;
 	};
 	class Convolution : public ILayer {
 		private:
@@ -46,8 +54,6 @@ namespace neural {
 
 			void autoZeroPadding();
 		public:
-			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< std::pair<size_t, size_t> > kernels, Buffer input, int stride = 0, int zeroPadding = -1);
-			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< std::pair<size_t, size_t> > kernels,  size_t inputDepth, size_t inputHeight, size_t inputWidth, int stride = 0, int zeroPadding = -1);
 			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< std::pair<size_t, size_t> > kernels, const ILayer* prevLayer, int stride = 0, int zeroPadding = -1); 
 	
 			void CalculateOutput(ILayer* prev_layer);
@@ -61,8 +67,6 @@ namespace neural {
 			size_t kernel_width;
 			size_t kernel_height;
 		public:
-			Pulling(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, Buffer input);
-			Pulling(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, size_t inputDepth, size_t inputHeight, size_t inputWidth);
 			Pulling(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, ILayer* prevLayer);
 			
 			void CalculateOutput(ILayer* prev_layer);
@@ -72,8 +76,6 @@ namespace neural {
 	};
 	class FullConnected : public ILayer {
 		public:
-			FullConnected(const std::string& name, FunctionCollection::Name function, Buffer input);
-			FullConnected(const std::string& name, FunctionCollection::Name function, size_t inputLength);
 			FullConnected(const std::string& name, FunctionCollection::Name function, ILayer* prevLayer);
 			
 			void CalculateOutput(ILayer* prev_layer);
@@ -85,8 +87,6 @@ namespace neural {
 	// For testing
 	class GreyScalling : public ILayer {
 		public:
-			GreyScalling(const std::string& name, FunctionCollection::Name function, Buffer input);
-			GreyScalling(const std::string& name, FunctionCollection::Name function, size_t inputDepth, size_t inputHeight, size_t inputWidth);
 			GreyScalling(const std::string& name, FunctionCollection::Name function, ILayer* prevLayer);
 			
 			void CalculateOutput(ILayer* prev_layer);
@@ -99,8 +99,6 @@ namespace neural {
 			size_t kernel_width;
 			size_t kernel_height;
 		public:
-			Simplifying(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, Buffer input);
-			Simplifying(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, size_t inputDepth, size_t inputHeight, size_t inputWidth);
 			Simplifying(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, ILayer* prevLayer);
 			
 			void CalculateOutput(ILayer* prev_layer);

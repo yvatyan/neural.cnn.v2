@@ -1,19 +1,21 @@
+#include <sstream>
+
 #include "NeuralLayers.cpp"
 
 using namespace std;
 
 ILayer::ILayer(const std::string& name, ILayer::Type layer, FunctionCollection::Name function)
-	: layerName(name)
+	: layer_name(name)
 	, f_collection()
-	, functionName(function)
-	, layerType(layer)
+	, function_name(function)
+	, layer_type(layer)
 {
 }
 const std::string ILayer::LayerFunctionName() const {
-	return FunctionName::FName(functionName);
+	return FunctionName::FName(function_name);
 }
 const std::string ILayer::LayerTypeName() const {
-	switch (layerType) {
+	switch (layer_type) {
 		case	Input		:	return "Input";
 		case	Convolution	:	return "Convolution";
 		case	Pulling		:	return "Pulling";
@@ -22,4 +24,17 @@ const std::string ILayer::LayerTypeName() const {
 		case	Simplifying	:	return "Simplifying";
 		case	Output		:	return "Output";
 	};
+}
+const std::string& LayerName() const {
+	return layer_name;
+}
+
+Input::Input(const std::string& name)
+	: ILayer(name, ILayer::Input, FunctionCollection::None)
+{
+}
+const std::string Properties() const {
+	std::stringstream props;
+
+	
 }

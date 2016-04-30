@@ -22,10 +22,10 @@ namespace neural {
 		protected:
 			Buffer* output;
 			Buffer* deltas;
-			std::string layerName;
+			std::string layer_name;
 			FunctionCollection f_collection;
-			FunctionCollection::Name functionName;
-			Ilayer::Type layerType;
+			FunctionCollection::Name function_name;
+			Ilayer::Type layer_type;
 		public:
 			ILayer(const std::string& name, ILayer::Type layer, FunctionCollection::Name function);
 			virtual ~ILayer();
@@ -34,7 +34,7 @@ namespace neural {
 			virtual void CalculateDeltas(ILayer* prev_layer) = 0;
 			virtual void DoCorrections() { return; }
 
-			virtual const std::string& Properties() const = 0;
+			virtual const std::string Properties() const = 0;
 			
 			const std::string LayerFunctionName() const;
 			const std::string LayerTypeName() const;
@@ -44,13 +44,21 @@ namespace neural {
 		public:
 			Input(const std::string& name);
 
+			const std::string Properties() const ;
+			void DataInput(const Buffer& input);
+	};
+	class Output : public ILayer {
+		public:
+			Output(const std::string& name);
+
 			const std::string& Properties() const ;
+			const Buffer& DataOutput() const ;
 	};
 	class Convolution : public ILayer {
 		private:
-			std::vector<Buffer> layerKernels;
+			std::vector<Buffer> layer_kernels;
 			int stride;
-			int zeroPad;
+			int zero_padding;
 
 			void autoZeroPadding();
 		public:

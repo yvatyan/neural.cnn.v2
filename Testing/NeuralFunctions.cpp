@@ -4,6 +4,7 @@
 #include "..\Sources\Neural\Headers\NeuralFunctions.h"
 
 using namespace std;
+using namespace neural;
 
 int main() {
 
@@ -46,4 +47,11 @@ int main() {
 	cout << "Sum() = " << collection.Combination().Sum() << endl;
 	cout << "BooleanSum() = " << collection.Combination().BooleanSum() << endl;
 	cout << "Normalize(176, 54) = " << collection.Combination().Normalize(54) << endl;
+
+	// Test names and types
+	cout << "Name: " << FunctionCollection::FunctionName(FunctionCollection::SoftMax) << endl;
+	cout << "Type (a): " << FunctionCollection::FunctionType(FunctionCollection::SoftMax) << endl;
+	cout << "Type (c): " << FunctionCollection::FunctionType(FunctionCollection::Maximum) << endl;
+
+	return 0;
 }

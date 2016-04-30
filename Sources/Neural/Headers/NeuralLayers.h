@@ -25,13 +25,13 @@ namespace neural {
 			std::string layer_name;
 			FunctionCollection f_collection;
 			FunctionCollection::Name function_name;
-			Ilayer::Type layer_type;
+			ILayer::Type layer_type;
 		public:
 			ILayer(const std::string& name, ILayer::Type layer, FunctionCollection::Name function);
-			virtual ~ILayer();
+			virtual ~ILayer() {};
 			
-			virtual void CalculateOutput(ILayer* prevLayer) = 0;
-			virtual void CalculateDeltas(ILayer* prev_layer) = 0;
+			virtual void CalculateOutput(ILayer* prevLayer) { return; }
+			virtual void CalculateDeltas(ILayer* prev_layer) { return; }
 			virtual void DoCorrections() { return; }
 
 			virtual const std::string Properties() const = 0;
@@ -43,6 +43,7 @@ namespace neural {
 	class Input : public ILayer {
 		public:
 			Input(const std::string& name);
+			~Input() {};	
 
 			const std::string Properties() const ;
 			void DataInput(const Buffer& input);
@@ -51,7 +52,7 @@ namespace neural {
 		public:
 			Output(const std::string& name);
 
-			const std::string& Properties() const ;
+			const std::string Properties() const ;
 			const Buffer& DataOutput() const ;
 	};
 	class Convolution : public ILayer {
@@ -68,7 +69,7 @@ namespace neural {
 			void CalculateDeltas(ILayer* prev_layer);
 			void DoCorrections();
 			
-			const std::string& Properties() const;
+			const std::string Properties() const;
 	};
 	class Pulling : public ILayer {
 		private:
@@ -80,7 +81,7 @@ namespace neural {
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			
-			const std::string& Properties() const;
+			const std::string Properties() const;
 	};
 	class FullConnected : public ILayer {
 		public:
@@ -90,7 +91,7 @@ namespace neural {
 			void CalculateDeltas(ILayer* prev_layer);
 			void DoCorrections();
 			
-			const std::string& Properties() const;
+			const std::string Properties() const;
 	};
 	// For testing
 	class GreyScalling : public ILayer {
@@ -100,7 +101,7 @@ namespace neural {
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			
-			const std::string& Properties() const;			
+			const std::string Properties() const;			
 	};
 	class Simplifying : public ILayer {
 		private:
@@ -112,8 +113,10 @@ namespace neural {
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			
-			const std::string& Properties() const;			
+			const std::string Properties() const;			
 	};
 }
+
+#include "../NeuralLayers.cpp"
 
 #endif

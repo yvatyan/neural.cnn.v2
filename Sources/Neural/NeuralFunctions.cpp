@@ -2,6 +2,8 @@
 #include <cmath>
 #include <float.h>
 
+#include <iostream>
+
 using namespace neural;
 
 void FunctionCollection::Activation::init() {
@@ -99,8 +101,9 @@ void FunctionCollection::Combination::accumulate(double value) {
 void FunctionCollection::Combination::erase() {
 	init();
 }
-const std::string& FunctionName(FunctionCollection::Name nameEnum) const {
+const std::string FunctionCollection::FunctionName(FunctionCollection::Name nameEnum) {
 		switch(nameEnum) {
+			case	None		:	return "None";
 			case	SoftMax		:	return "SoftMax";
 			case	SoftStep	:	return "SoftStep";
 			case	SoftPlus	:	return "SoftPlus";
@@ -127,6 +130,7 @@ const std::string& FunctionName(FunctionCollection::Name nameEnum) const {
 
 		};
 }
-const std::string& FunctionType(FunctionCollection::Name nameEnum) const {
-	return (nameEnum & 128 == 128 ? "Combination" : "Activation");
+const std::string FunctionCollection::FunctionType(FunctionCollection::Name nameEnum) {
+	if(None == nameEnum) return "No type";
+	return (128 == (nameEnum & 128) ? "Combination" : "Activation");
 }

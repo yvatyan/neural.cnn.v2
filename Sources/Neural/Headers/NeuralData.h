@@ -3,6 +3,8 @@
 
 #include "MultiDdata.hpp"
 
+// TODO: combain "ElementTo", and "ElementAt" funcs
+
 namespace neural {
 	class Buffer {
 		private:
@@ -35,6 +37,8 @@ namespace neural {
 			Buffer(int x, double def = 0);
 			Buffer(int y, int x, double def = 0);
 			Buffer(int z, int y, int x, double def = 0);
+			
+			Buffer(const Buffer& copy);
 			~Buffer();
 
 			void SetPseudo3Dheight(size_t heightIn3D);
@@ -55,6 +59,7 @@ namespace neural {
 			size_t Width1D() const ;
 			size_t Width2D() const ;
 			size_t Width3D() const ;
+			size_t Size() const ;
 	};
 }
 #include "../NeuralData.cpp"

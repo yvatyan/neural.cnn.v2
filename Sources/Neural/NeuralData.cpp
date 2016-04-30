@@ -10,11 +10,12 @@ void Buffer::checkRange(int x) const {
 	return;
 }
 void Buffer::checkRange(int y, int x) const {
-	assert(width_in_2d != 0);
 	if(member1d) {
+		assert(width_in_2d != 0);
 		assert(member1d->Size() % width_in_2d == 0);
 	}
 	if(member3d) {
+		assert(width_in_2d != 0);
 		assert(member3d->Size() % width_in_2d == 0);
 	}
 	assert(y < Height2D());
@@ -22,12 +23,14 @@ void Buffer::checkRange(int y, int x) const {
 	return;
 }
 void Buffer::checkRange(int z, int y, int x) const {
-	assert(height_in_3d != 0);
-	assert(width_in_3d != 0);
 	if(member1d) {
+		assert(width_in_3d != 0);
+		assert(height_in_3d != 0);
 		assert(member1d->Size() % (width_in_3d * height_in_3d) == 0);
 	}
 	if(member2d) {
+		assert(width_in_3d != 0);
+		assert(height_in_3d != 0);
 		assert(member2d->Size() % (width_in_3d * height_in_3d) == 0);
 	}
 	assert(z < Depth3D());
@@ -87,20 +90,43 @@ Buffer::Buffer(matrix3d<double>* data) {
 Buffer::Buffer(int x, double def) {
 	container_mode = true;
 	member1d = new matrix1d<double>(x, def);
-	member2d = NULL; member3d = NULL;
+	member2d = NULL;
+	member3d = NULL;
 	width_in_2d = width_in_3d = height_in_3d = 0;
 }
 Buffer::Buffer(int y, int x, double def) {
 	container_mode = true;
 	member2d = new matrix2d<double>(y, x, def);
-	member1d = NULL; member3d = NULL;
+	member1d = NULL;
+	member3d = NULL;
 	width_in_2d = width_in_3d = height_in_3d = 0;
 }
 Buffer::Buffer(int z, int y, int x, double def) {
 	container_mode = true;
 	member3d = new matrix3d<double>(z, y, x, def);
-	member2d = NULL; member2d = NULL;
+	member1d = NULL;
+	member2d = NULL;
 	width_in_2d = width_in_3d = height_in_3d = 0;
+}
+Buffer::Buffer(const Buffer& copy) {
+	if(copy.member1d) {
+		member1d = new matrix1d<double>(*copy.member1d);
+		member2d = NULL;
+		member3d = NULL;
+	}
+	else if(copy.member2d) {
+		member2d = new matrix2d<double>(*copy.member2d);
+		member1d = NULL;
+		member3d = NULL;
+	}
+	else if(copy.member3d) {
+		member3d = new matrix3d<double>(*copy.member3d);
+		member1d = NULL;
+		member2d = NULL;
+	}
+	width_in_2d = copy.width_in_2d;
+	width_in_3d = copy.width_in_3d;
+	height_in_3d = copy.height_in_3d;
 }
 Buffer::~Buffer() {
 	if(container_mode && member1d) delete member1d;
@@ -214,4 +240,10 @@ size_t Buffer::Width3D() const {
 	if(member1d) return width_in_3d;
 	if(member2d) return width_in_3d;
 	if(member3d) return member3d->Width();
+}
+size_t Buffer::Size() const {
+	assert(member1d || member2d || member3d);
+	if(member1d) return member1d->Size();
+	if(member2d) return member2d->Size();
+	if(member3d) return member3d->Size();
 }

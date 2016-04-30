@@ -106,8 +106,8 @@ int main() {
 	
 	Buffer testFor3d(&test3);
 	testFor3d.SetPseudo2Dwidth(15);
-	testFor3d.SetPseudo3Dheight(63);			// success, OK	(for 3D member pseudo3d height in NOT checked)
-	testFor3d.SetPseudo3Dwidth(13);				// success, OK	(for 3D member pseudo3d width in NOT checked)
+	//testFor3d.SetPseudo3Dheight(63);			// success, OK	(for 3D member pseudo3d height in NOT checked)
+	//testFor3d.SetPseudo3Dwidth(13);				// success, OK	(for 3D member pseudo3d width in NOT checked)
 
 	cout << "Information (contains 3D member)"
 		"\n\nDepth3D:  " << testFor3d.Depth3D() <<
@@ -173,6 +173,15 @@ int main() {
 
 //	double f2 = testFor1d.ElementAt(0, 0);
 //	double f3 = testFor1d.ElementAt(0, 0, 0);
+
+
+	// copy contructor
+	Buffer testFor1dC(testFor1d);
+	Buffer testFor2dC(testFor2d);
+	Buffer testFor3dC(testFor3d);
+
+
+	
 
 	return 0;
 }

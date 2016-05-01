@@ -111,3 +111,48 @@ void Output::CalculateOutput(ILayer* prevLayer) {
 const Buffer& Output::DataOutput() const {
 	return *output;
 }
+
+int Convolution::getZeroPadding(size_t index, size_t input_d, size_t input_h, size_t input_w) {
+	double zero_pad_h = strides[index] * (input_h - 1) - input_h - kernels[index].Height3D();
+	double zero_pad_w = strides[index] * (input_w - 1) - input_w - kernels[index].Width3D();
+
+	assert(input_d == kernels[index].Depth3D());
+	assert(zero_pad_h == zero_pad_w);
+	assert(zero_pad_h == (int) zero_pad_h);
+	assert(zero_pad_w == (int) zero_pad_w);
+
+	return zero_pad_h;
+	
+}
+void Convolution::generateKernel(size_t index, size_t z, size_t y, size_t x) {
+	layer_kernels[i] = new Buffer(z, y, x, 0.);
+	double initial;
+	for(int i = 0; i < z; ++i) {
+		for(int j = 0; j < y; ++j) {
+			for(int h = 0; h < x; ++h) {
+				initial = 0.;
+				layer_kernels[i] = initial;
+			}
+		}
+	}
+}
+Convolution::Convolution(const std::string& name, FunctionColection::Name function, size_t input_depth, size_t y, size_t x, std::vector< boost::tuple< size_t, size_t, int > kernels) 
+	: ILayer(name, ILayer::Convolution, function)
+	, layer_kernels(kernels.size())
+	, strides(kernels.size())
+{
+	for(int i = 0; i < kernels.size(); ++i) {
+		generateKernel(i, input_depth, kernels[i].get<0>(), kernels[i].get<1>());
+		strides[i] = kernels[i].get<2>();
+	}
+	output = new Buffer(kernels.size(), y, x, 0.);
+}
+void Convolution::CalculateOutput(ILayer* prev_layer) {
+
+}
+void Convolution::CalculateDeltas(ILayer* prev_layer) {
+
+}
+void Convilution::DoCorrection() {
+	
+}

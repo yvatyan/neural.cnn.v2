@@ -2,7 +2,9 @@
 #define NEURALLAYERS_H_
 
 #include <string>
+
 #include <vector>
+#include <boost/tuple/tuple.hpp>
 
 #include "NeuralFunctions.h"
 #include "NeuralData.h"
@@ -54,7 +56,7 @@ namespace neural {
 	class Output : public ILayer {
 		public:
 			Output(const std::string& name, size_t x);
-			Output(const std::string& name, size_t pse_h, size_t x);
+			Output(const std::string& name, size_t pse_w, size_t x);
 			Output(const std::string& name, size_t pse_h, size_t pse_w, size_t x);
 
 			void CalculateOutput(ILayer* prev_layer);
@@ -63,13 +65,13 @@ namespace neural {
 	};
 	class Convolution : public ILayer {
 		private:
-			std::vector<Buffer> layer_kernels;
-			int stride;
-			int zero_padding;
+			std::vector<Buffer*> layer_kernels;
+			std::vector<int> strides;
 
-			void autoZeroPadding();
+			void generateKernel(size_t index, size_t z, size_t y, size_t x); 
+			int getZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
 		public:
-			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< std::pair<size_t, size_t> > kernels, size_t z, size_t y, size_t x, int stride = 0, int zeroPadding = -1); 
+			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< boost::tuple< size_t, size_t, int > kernels, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
 	
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
@@ -92,7 +94,7 @@ namespace neural {
 	class FullConnected : public ILayer {
 		public:
 			FullConnected(const std::string& name, FunctionCollection::Name function, size_t x);
-			FullConnected(const std::string& name, FunctionCollection::Name function, size_t pse_h, size_t x);
+			FullConnected(const std::string& name, FunctionCollection::Name function, size_t pse_w, size_t x);
 			FullConnected(const std::string& name, FunctionCollection::Name function, size_t pse_h, size_t pse_w, size_t x);
 			
 			void CalculateOutput(ILayer* prev_layer);

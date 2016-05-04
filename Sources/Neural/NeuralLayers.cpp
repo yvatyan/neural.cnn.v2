@@ -4,10 +4,9 @@
 
 using namespace neural;
 
-ILayer::ILayer(const std::string& name, ILayer::Type layer, FunctionCollection::Name function)
+ILayer::ILayer(const std::string& name, ILayer::Type layer, Function* func)
 	: layer_name(name)
-	, f_collection()
-	, function_name(function)
+	, function(*func)
 	, layer_type(layer)
 {
 	deltas = NULL;
@@ -136,8 +135,8 @@ void Convolution::generateKernel(size_t index, size_t z, size_t y, size_t x) {
 		}
 	}
 }
-Convolution::Convolution(const std::string& name, FunctionColection::Name function, size_t input_depth, size_t y, size_t x, std::vector< boost::tuple< size_t, size_t, int > kernels) 
-	: ILayer(name, ILayer::Convolution, function)
+Convolution::Convolution(const std::string& name, const Activation func, size_t input_depth, size_t y, size_t x, std::vector< boost::tuple< size_t, size_t, int > kernels) 
+	: ILayer(name, ILayer::Convolution, &function)
 	, layer_kernels(kernels.size())
 	, strides(kernels.size())
 {
@@ -148,10 +147,33 @@ Convolution::Convolution(const std::string& name, FunctionColection::Name functi
 	output = new Buffer(kernels.size(), y, x, 0.);
 }
 void Convolution::CalculateOutput(ILayer* prev_layer) {
+	assert(canConvertHeight(static_cast<Convolution*>(prevLayer)->output->Height3D()));
+	assert(canConvertWidth(static_cast<Convolution*>(prevLayer)->output->Width3D()));
+	assert(layer_kernels[0]->Depth3D() == static_cast<Convolution*>(prevLayer)->output->Depth3D());
+
+	for(int k = 0; k < layer_kernels->size(); ++k) {
+		int eta = getConvertedHeight(k);
+		int ksi = getConvertedWidth(k);
+		for(int i = 0; i < eta; ++i) {
+			for(int j = 0 ; j < ksi; ++j) {
+				double value = 0.;
+				for(int depth = 0; depth < layer_kernels[k]->Depth3D(), ++depth) {
+					for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
+						for(int width = 0; width < layer_kernels[k]->Width3D(); ++width) {
+							int alpha = j * strides[k] + width; 
+							int beta = i * strides[k] + height;
+							value = static_cast<Convolution*>(prevLayer)->output->ElementAt(depth, alpha, beta) * layer_kernels->ElementAt(depth, height, width);
+						}
+					}
+				}
+				output.ElementTo(k, i, j, value);
+			}
+		}
+	}
 
 }
 void Convolution::CalculateDeltas(ILayer* prev_layer) {
-
+	
 }
 void Convilution::DoCorrection() {
 	

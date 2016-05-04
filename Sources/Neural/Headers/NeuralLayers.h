@@ -28,11 +28,10 @@ namespace neural {
 			Buffer* output;
 			Buffer* deltas;
 			std::string layer_name;
-			FunctionCollection f_collection;
-			FunctionCollection::Name function_name;
+			Function* function;
 			ILayer::Type layer_type;
 		public:
-			ILayer(const std::string& name, ILayer::Type layer, FunctionCollection::Name function);
+			ILayer(const std::string& name, ILayer::Type layer, Function* function);
 			virtual ~ILayer() {};
 			
 			virtual void CalculateOutput(ILayer* prevLayer) { return; }
@@ -71,7 +70,7 @@ namespace neural {
 			void generateKernel(size_t index, size_t z, size_t y, size_t x); 
 			int getZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
 		public:
-			Convolution(const std::string& name, FunctionCollection::Name function, std::vector< boost::tuple< size_t, size_t, int > kernels, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
+			Convolution(const std::string& name, const Activation func, std::vector< boost::tuple< size_t, size_t, int > kernels, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
 	
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
@@ -102,15 +101,6 @@ namespace neural {
 			void DoCorrections();
 			
 			const std::string Properties() const;
-	};
-	class GreyScalling : public ILayer {
-		public:
-			GreyScalling(const std::string& name, FunctionCollection::Name function, size_t y, size_t x);
-			
-			void CalculateOutput(ILayer* prev_layer);
-			void CalculateDeltas(ILayer* prev_layer);
-			
-			const std::string Properties() const;			
 	};
 	class Simplifying : public ILayer {
 		private:

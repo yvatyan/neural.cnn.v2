@@ -1,66 +1,10 @@
 #ifndef NEURALFUNCTIONS_H_
 #define NEURALFUNCTIONS_H_
 
-#include <string>
-
 namespace neural {
-	class FunctionCollection {
-		private:
-			class Activation {
-				private:
-					double accumulated_sum;
-					double accumulated_e_sum;
-
-					void init();
-				public:
-					Activation();
-
-					double SoftMax(double param) const ;
-					double SoftStep(double param) const ;
-					double SoftPlus() const ;
-					double SoftSign() const ;
-					double BinaryStep() const ;
-					double TanH() const ;
-					double ArcTan() const ;
-					double Identity() const ;
-					double BentIdentity() const ;
-					double Gaussian() const ;
-
-					void accumulate(double value);
-					void erase();
-			};
-			class Combination {
-				private:
-					double accumulated_sum;
-					double accumulated_bool_sum;
-					double element_qty;
-					double max_element;
-					double min_element;
-					
-					void init();
-				public:
-					Combination();
-
-					double Maximum() const ;
-					double Minimum() const ;
-					double Mean()const ;
-					double MaxQtyBoolean() const ;
-					double MinQtyBoolean() const ;
-					double GreyscaleHDTV(double red, double green, double blue) const ;
-					double GreyscaleYUV(double red, double green, double blue) const ;
-					double Sum() const ;
-					double BooleanSum() const ;
-					double Normalize(double value) const ;
-
-					void accumulate(double value);
-					void erase();
-			};
-
-			Activation A;
-			Combination C;
-		public:	
+	class Activation {
+		public:
 			enum Name {
-				None = 0,
 				SoftMax = 1,
 				SoftStep = 2,
 				SoftPlus = 3,
@@ -70,38 +14,80 @@ namespace neural {
 				ArcTan = 7,
 				Identity = 8,
 				BentIdentity = 9,
-				Gaussian = 10,
-
-				Maximum = 129,
-				Minimum = 130 ,
-				Mean = 131,
-				MaxQtyBoolean = 132,
-				MinQtyBoolean = 133,
-				GreyscaleHDTV = 134,
-				GreyscaleYUV = 135,
-				Sum = 136,
-				BooleanSum = 137,
-				Normalize = 138
+				Gaussian = 10
 			};
-			const Activation& Activation() const {
-				return A;
-			}
-			const Combination& Combination() const {
-				return C;
-			}
-			void Accumulate(double value) {
-				A.accumulate(value);
-				C.accumulate(value);
-			}
-			void ClearStorage() {
-				A.erase();
-				C.erase();
-			}
-			static const std::string FunctionName(FunctionCollection::Name nameEnum);
-			static const std::string FunctionType(FunctionCollection::Name nameEnum);
+		private:
+			double param1;
+			Name selected_func;
+
+			double SoftMax(double value) const ;
+			double SoftStep(double value) const ;
+			double SoftPlus(double value) const ;
+			double SoftSign(double value) const ;
+			double BinaryStep(double value) const ;
+			double TanH(double value) const ;
+			double ArcTan(double value) const ;
+			double Identity(double value) const ;
+			double BentIdentity(double value) const ;
+			double Gaussian(double value) const ;
+
+			double dSoftMax(double value) const ;
+			double dSoftStep(double value) const ;
+			double dSoftPlus(double value) const ;
+			double dSoftSign(double value) const ;
+			double dBinaryStep(double value) const ;
+			double dTanH(double value) const ;
+			double dArcTan(double value) const ;
+			double dIdentity(double value) const ;
+			double dBentIdentity(double value) const ;
+			double dGaussian(double value) const ;
+
+			void init();
+		public:
+			Activation(Name function);
+			Activation(Name function, double parameter);
+
+			double operator()(double value) const;
+			double operator[](double value) const;
+
+	};
+	class Combination {
+		public:
+			enum Name {
+				Maximum = 1,
+				Minimum = 2,
+				Mean = 3,
+				MaxQtyBoolean = 4,
+				MinQtyBoolean = 5,
+				Sum = 6,
+				BooleanSum = 7,
+				Normalize = 8
+			};
+		private:
+			double accumulated_sum;
+			double accumulated_qty;
+			double element;
+			Name selected_func;
+			
+			double Maximum() const ;
+			double Minimum() const ;
+			double Mean()const ;
+			double MaxQtyBoolean() const ;
+			double MinQtyBoolean() const ;
+			double Sum() const ;
+			double BooleanSum() const ;
+			double Normalize(double value) const ;
+
+			void init();
+		public:
+			Combination(Name function);
+		
+			void Clear();
+
+			double operator()() const;
+			double operator(double value) const;
+			void operator+(double value);
 	};
 }
-
-#include "../NeuralFunctions.cpp"
 
 #endif

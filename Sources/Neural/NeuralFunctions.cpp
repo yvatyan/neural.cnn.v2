@@ -6,131 +6,193 @@
 
 using namespace neural;
 
-void FunctionCollection::Activation::init() {
-	accumulated_sum = 0.;
-	accumulated_e_sum = 0.;
+double Activation::SoftMax(double value) const {
+	return std::pow(M_E, value) / param1;
 }
-FunctionCollection::Activation::Activation() {
+double Activation::SoftStep(double value) const {
+	return 1. / ( 1. + std::pow( M_E, -1.*param1*value ) );
+}
+double Activation::SoftPlus(double value) const {
+	return std::log( std::pow(M_E, value) + 1. );
+}
+double Activation::SoftSign(double value) const {
+	return value / ( std::abs( value ) + 1. );
+}
+double Activation::BinaryStep(double value) const {
+	return ( value < 0. ? 0. : 1. ); 
+}
+double Activation::TanH(double value) const {
+	return ( 2. / (1. + std::pow(M_E, -2.*value)) ) - 1.; 
+}
+double Activation::Identity(double value) const {
+	return value;
+}
+double Activation::ArcTan(double value) const {
+	return atan(value);
+}
+double Activation::BentIdentity(double value) const {
+	return ( std::sqrt( value*value + 1) - 1 ) / 2 + value;
+}
+double Activation::Gaussian(double value) const {
+	return std::pow(M_E, -1.*value*value);
+}
+double Activation::dSoftMax(double value) const {
+	return SoftMax(value);
+}
+double Activation::dSoftStep(double value) const {
+	return param1 * (SoftStep(value)) * (1. - SoftStep(value));
+}
+double Activation::dSoftPlus(double value) const {
+	return 1. / ( 1 + std::pow(M_E, -1.*value));
+}
+double Activation::dSoftSign(double value) const {
+	return 1. / ( ( std::abs( value ) + 1. ) * ( std::abs( value ) + 1. ) );
+}
+double Activation::dBinaryStep(double value) const {
+	return 0.; 
+}
+double Activation::dTanH(double value) const {
+	return 1 - TanH(value) * TanH(value); 
+}
+double Activation::dIdentity(double value) const {
+	return 1.;
+}
+double Activation::dArcTan(double value) const {
+	return 1 / ( value * value + 1);
+}
+double Activation::dBentIdentity(double value) const {
+	return value / (2 * std::sqrt( value * value + 1 )) + 1;
+}
+double Activation::dGaussian(double value) const {
+	return -2. * value * std::pow(M_E, -1.*value*value);
+}
+void Activation::init() {
+	param1 = 0;	
+}
+Activation::Activation(Name function) {
+	selected_func = function;
 	init();
 }
-double FunctionCollection::Activation::SoftMax(double value) const {
-	return std::pow(M_E, value) / accumulated_e_sum;
-}
-double FunctionCollection::Activation::SoftStep(double value) const {
-	return 1. / ( 1. + std::pow( M_E, -1.*value*accumulated_sum ) );
-}
-double FunctionCollection::Activation::SoftPlus() const {
-	return std::log( std::pow(M_E, accumulated_sum) + 1. );
-}
-double FunctionCollection::Activation::SoftSign() const {
-	return accumulated_sum / ( std::abs(accumulated_sum ) + 1. );
-}
-double FunctionCollection::Activation::BinaryStep() const {
-	return ( accumulated_sum < 0. ? 0. : 1. ); 
-}
-double FunctionCollection::Activation::TanH() const {
-	return ( 2. / (1. + std::pow(M_E, -2.*accumulated_sum)) ) - 1.; 
-}
-double FunctionCollection::Activation::Identity() const {
-	return accumulated_sum;
-}
-double FunctionCollection::Activation::ArcTan() const {
-	return atan(accumulated_sum);
-}
-double FunctionCollection::Activation::BentIdentity() const {
-	return ( std::sqrt( accumulated_sum*accumulated_sum + 1) - 1 ) / 2 + accumulated_sum;
-}
-double FunctionCollection::Activation::Gaussian() const {
-	return std::pow(M_E, -1.*accumulated_sum*accumulated_sum);
-}
-void FunctionCollection::Activation::accumulate(double value) {
-	accumulated_sum += value;
-	accumulated_e_sum += std::pow(M_E, value);
-}
-void FunctionCollection::Activation::erase() {
+Activation::Activation(Name function, double parameter) {
+	selected_func = fuction;
+	param1 = parameter;
 	init();
+}
+double operator()(double value) const {
+	switch(selected_func) {
+		case	SoftMax		:	return SoftMax(value);
+		case	SoftStep	:	return SoftStep(value);
+		case	SoftPlus	:	return SoftPlus(value);
+		case	SoftSign	:	return SoftSign(value);
+		case	BinaryStep	:	return BinaryStep(value);
+		case	TanH		:	return TanH(value);
+		case	ArcTan		:	return ArcTan(value);
+		case	Identity	:	return Identity(value);
+		case	BentIdentity	:	return BentIdentity(value);
+		case	Gaussian	:	return Gaussian(value);
+	};
+}
+double operator[](double value) const {
+	switch(selected_func) {
+		case	SoftMax		:	return dSoftMax(value);
+		case	SoftStep	:	return dSoftStep(value);
+		case	SoftPlus	:	return dSoftPlus(value);
+		case	SoftSign	:	return dSoftSign(value);
+		case	BinaryStep	:	return dBinaryStep(value);
+		case	TanH		:	return dTanH(value);
+		case	ArcTan		:	return dArcTan(value);
+		case	Identity	:	return dIdentity(value);
+		case	BentIdentity	:	return dBentIdentity(value);
+		case	Gaussian	:	return dGaussian(value);
+	};
 }
 
-void FunctionCollection::Combination::init() {
-	accumulated_sum = 0.;
-	accumulated_bool_sum = 0.;
-	element_qty = 0.;
-	max_element = DBL_MIN;
-	min_element = DBL_MAX;
+
+double Combination::Maximum() const {
+	return element;
 }
-FunctionCollection::Combination::Combination() {
-	init();
+double Combination::Minimum() const {
+	return element;
 }
-double FunctionCollection::Combination::Maximum() const {
-	return max_element;
+double Combination::Mean() const {
+	return accumulated_sum / accumulated_qty;
 }
-double FunctionCollection::Combination::Minimum() const {
-	return min_element;
+double Combination::MaxQtyBoolean() const {
+	return (accumulated_sum > accumulated_qty / 2. ? 1. : 0.);
 }
-double FunctionCollection::Combination::Mean() const {
-	return accumulated_sum / element_qty;
+double Combination::MinQtyBoolean() const {
+	return (accumulated_sum < accumulated_qty / 2. ? 1. : 0.);
 }
-double FunctionCollection::Combination::MaxQtyBoolean() const {
-	return (accumulated_bool_sum > element_qty / 2. ? 1. : 0.);
-}
-double FunctionCollection::Combination::MinQtyBoolean() const {
-	return (accumulated_bool_sum < element_qty / 2. ? 1. : 0.);
-}
-double FunctionCollection::Combination::GreyscaleHDTV(double red, double green, double blue) const {
-	return 0.2126*red + 0.7152*green + 0.0722*blue;
-}
-double FunctionCollection::Combination::GreyscaleYUV(double red, double green, double blue) const {
-	return 0.299*red + 0.587*green + 0.114*blue;
-}
-double FunctionCollection::Combination::Sum() const {
+double Combination::Sum() const {
 	return accumulated_sum;
 }
-double FunctionCollection::Combination::BooleanSum() const {
-	return accumulated_bool_sum;
+double Combination::BooleanSum() const {
+	return accumulated_sum;
 }
-double FunctionCollection::Combination::Normalize(double value) const {
+double Combination::Normalize(double value) const {
 	return value / accumulated_sum;
 }
-void FunctionCollection::Combination::accumulate(double value) {
-	accumulated_sum += value;
-	accumulated_bool_sum += (bool) value;
-	element_qty ++;
-	max_element = (value > max_element ? value : max_element);
-	min_element = (value < min_element ? value : min_element);
+void Combination::init() {
+	if(Maximum == selected_function) {
+		element = DBL_MIN;
+	}
+	else {
+		element = DBL_MAX;
+	}
+	accumulated_sum = 0;
+	accumulated_qty = 0;
 }
-void FunctionCollection::Combination::erase() {
+double Combination::Combination(Combination::Name function) {
+	selected_func = function;
 	init();
 }
-const std::string FunctionCollection::FunctionName(FunctionCollection::Name nameEnum) {
-		switch(nameEnum) {
-			case	None		:	return "None";
-			case	SoftMax		:	return "SoftMax";
-			case	SoftStep	:	return "SoftStep";
-			case	SoftPlus	:	return "SoftPlus";
-			case	SoftSign	:	return "SoftSign";
-			case	BinaryStep	:	return "BinaryStep";
-			case	TanH		:	return "TanH";
-			case	ArcTan		:	return "ArcTan";
-			case	Identity	:	return "Identity";
-			case	BentIdentity	:	return "BentIdentity";
-			case	Gaussian	:	return "Gaussian";
-
-			case	Maximum		:	return "Maximum";
-			case	Minimum		:	return "Minimum";
-			case	Mean		:	return "Mean";
-			case	MaxQtyBoolean	:	return "MaxQtyBoolean";
-			case	MinQtyBoolean	:	return "MinQtyBoolean";
-			case	GreyscaleHDTV	:	return "GreyscaleHDTV";
-			case	GreyscaleYUV	:	return "GreyscaleYUV";
-			case	Sum		:	return "Sum";
-			case	BooleanSum	:	return "BooleanSum";
-			case	Normalize	:	return "Normalize";
-
-			default			:	return "undefined";
-
-		};
+void Clear() {
+	init();
 }
-const std::string FunctionCollection::FunctionType(FunctionCollection::Name nameEnum) {
-	if(None == nameEnum) return "No type";
-	return (128 == (nameEnum & 128) ? "Combination" : "Activation");
+double operator()() const {
+	assert(Normalize != selected_func);
+	switch(selected_func) {
+		case	Maximum		:	return Maximum();
+		case	Minimum		:	return Minimum();
+		case	Mean		:	return Mean();
+		case	MaxQtyBoolean	:	return MaxQtyBoolean();
+		case	MinQtyBoolean	:	return MinQtyBoolean();
+		case	Sum		:	return Sum();
+		case	BooleanSun	:	return BooleanSum();
+	};
+}
+double operator(double value) const {
+	assert(Normalize == selected_func);
+	return Normalize(value);
+}
+void operator+(double value) {
+
+	switch(selected_func) {
+		case	Maximum		:
+						if(element < value) element = value;
+						break;
+		case	Minimum		:
+						if(element > value) element = value;
+						break;
+		case	Mean		:
+						accumulated_sum += value;
+						accumulated_qty ++;
+						break;
+		case	MaxQtyBoolean	:
+						accumulated_sum += (bool) value;
+						accumulated_qty ++;
+						break;
+		case	MinQtyBoolean	:	accumulated_sum += (bool) value;
+						accumulayed_qty ++;
+						break;
+		case	Sum		:	
+						accumulated_sum += value;
+						break;
+		case	BooleanSum	:
+						accumulated_sum += (bool) value;
+						break;
+		case	Normalize	:
+						accumulated_sum += value;
+						break;
+	};
 }

@@ -147,22 +147,25 @@ Convolution::Convolution(const std::string& name, const Activation func, size_t 
 	output = new Buffer(kernels.size(), y, x, 0.);
 }
 void Convolution::CalculateOutput(ILayer* prev_layer) {
-	assert(canConvertHeight(static_cast<Convolution*>(prevLayer)->output->Height3D()));
-	assert(canConvertWidth(static_cast<Convolution*>(prevLayer)->output->Width3D()));
+	assert(canConvertOutputHeight(static_cast<Convolution*>(prevLayer)->output->Height3D()));
+	assert(canConvertOutputWidth(static_cast<Convolution*>(prevLayer)->output->Width3D()));
 	assert(layer_kernels[0]->Depth3D() == static_cast<Convolution*>(prevLayer)->output->Depth3D());
 
-	for(int k = 0; k < layer_kernels->size(); ++k) {
-		int eta = getConvertedHeight(k);
-		int ksi = getConvertedWidth(k);
-		for(int i = 0; i < eta; ++i) {
-			for(int j = 0 ; j < ksi; ++j) {
+	int zph = getHeightZeroPadding();
+	int zpw = getWidthZeroPadding();
+	for(int k = 0; k < layer_kernels->size(); ++k) { // kernels.size == output.depth
+		for(int i = 0; i < output->Height3D(); ++i) {
+			for(int j = 0 ; j < output->Width3D(); ++j) {
 				double value = 0.;
 				for(int depth = 0; depth < layer_kernels[k]->Depth3D(), ++depth) {
 					for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
 						for(int width = 0; width < layer_kernels[k]->Width3D(); ++width) {
-							int alpha = j * strides[k] + width; 
-							int beta = i * strides[k] + height;
-							value = static_cast<Convolution*>(prevLayer)->output->ElementAt(depth, alpha, beta) * layer_kernels->ElementAt(depth, height, width);
+
+							int alpha = j * strides[k] + width - zpw; 
+							int beta = i * strides[k] + height - zph;
+							     if(alpha < 0 || beta < 0) continue;
+							else if(alpha > static_cast<Convolution*>(prevLayer)->output->Height3D() || beta > static_cast<Convolution*>(prevLayer)->output->Width3D()) continue;
+							value += static_cast<Convolution*>(prevLayer)->output->ElementAt(depth, alpha, beta) * layer_kernels->ElementAt(depth, height, width);
 						}
 					}
 				}
@@ -173,7 +176,24 @@ void Convolution::CalculateOutput(ILayer* prev_layer) {
 
 }
 void Convolution::CalculateDeltas(ILayer* prev_layer) {
-	
+	assert(canConvertDeltasHeight(static_cast<Convolution*>(prevLayer)->deltas->Height3D()));
+	assert(canConvertDeltasWidth(static_cast<Convolution*>(prevLayer)->deltas->Width3D()));
+	assert(layer_kernels[0]->Depth3D() == static_cast<Convolution*>(prevLayer)->deltas->Depth3D());
+
+	for(int i = 0; i < static_cast<Convolution*>(prev_layer)->Height3D(); ++i) {
+		for(int j = 0; j < static_cast<Convolution*>(prev_layer)->Width3D(); ++j) {
+			for(int k = 0; layer_kernels->size(); ++k) {
+				for(int depth = 0; depth < layer_kernels[k]->Depth3D(); ++depth) {
+					for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
+						for(int width = 0; width < layers_kernels[k]->Widtrh3D(); ++width) {
+							deltas.ElementTo(depth, alpha, beta, deltas.ElementAt(depth, alpha, beta) + layers_kernels[k].ElementAt(depth, height,width) * static_cast<Convolution*>(prev_layer)->deltas.ElementAt(k, i, j));
+						}
+					}
+				}
+			}
+		}
+	}
+
 }
 void Convilution::DoCorrection() {
 	

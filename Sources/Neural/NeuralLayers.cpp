@@ -111,17 +111,35 @@ const Buffer& Output::DataOutput() const {
 	return *output;
 }
 
-int Convolution::getZeroPadding(size_t index, size_t input_d, size_t input_h, size_t input_w) {
-	double zero_pad_h = strides[index] * (input_h - 1) - input_h - kernels[index].Height3D();
-	double zero_pad_w = strides[index] * (input_w - 1) - input_w - kernels[index].Width3D();
+double Convolution::getHeightZeroPadding(size_t index, size_t input_d, size_t input_h, size_t output_h) {
 
 	assert(input_d == kernels[index].Depth3D());
-	assert(zero_pad_h == zero_pad_w);
-	assert(zero_pad_h == (int) zero_pad_h);
-	assert(zero_pad_w == (int) zero_pad_w);
+	double zero_pad_h = (strides[index] * (output->Height3D() - 1) - input_h - kernels[index].Height3D()) / 2.;
 
 	return zero_pad_h;
-	
+}
+double Convolution::getWidthZeroPadding(size_t index, size_t input_d, size_t input_w, size_t output_w) {
+
+	assert(input_d == kernels[index].Depth3D());
+	double zero_pad_w = (strides[index] * (output->Width3D() - 1) - input_w - kernels[index].Width3D()) / 2.;
+
+	return zero_pad_w;
+}
+bool canConvertToOutputHeight(size_t input_data_height) const {
+
+	for( int i = 0; i < layer_kernels.size(); ++i) {
+		double zph = getHeightZeroPadding(i, input_data_height);
+		if( zph != (int) zph) return false;
+	}
+	return true;
+}
+bool canConvertToOutputWidth(size_t input_data_width) const {
+
+	for( int i = 0; i < layer_kernels.size(); ++i) {
+		double zpw = getWidthZeroPadding(i, input_data_width);
+		if( zpw != (int) zpw) return false;
+	}
+	return true;
 }
 void Convolution::generateKernel(size_t index, size_t z, size_t y, size_t x) {
 	layer_kernels[i] = new Buffer(z, y, x, 0.);

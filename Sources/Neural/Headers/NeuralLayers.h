@@ -68,7 +68,12 @@ namespace neural {
 			std::vector<int> strides;
 
 			void generateKernel(size_t index, size_t z, size_t y, size_t x); 
-			int getZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
+			int getHeightZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
+			int getWidthZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
+			bool canConvertToOutputHeight(size_t input_data_height) const;
+			bool canConvertToOutputWidth(size_t input_data_width) const;
+			bool canConvertToDeltasHeight(size_t input_delta_height) const;
+			bool canConvertToDeltasWidth(size_t input_delta_width) const;
 		public:
 			Convolution(const std::string& name, const Activation func, std::vector< boost::tuple< size_t, size_t, int > kernels, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
 	

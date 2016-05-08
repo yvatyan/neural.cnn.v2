@@ -20,16 +20,16 @@ namespace neural {
 			double param1;
 			Name selected_func;
 
-			double SoftMax(double value) const ;
-			double SoftStep(double value) const ;
-			double SoftPlus(double value) const ;
-			double SoftSign(double value) const ;
-			double BinaryStep(double value) const ;
-			double TanH(double value) const ;
-			double ArcTan(double value) const ;
-			double Identity(double value) const ;
-			double BentIdentity(double value) const ;
-			double Gaussian(double value) const ;
+			double fSoftMax(double value) const ;
+			double fSoftStep(double value) const ;
+			double fSoftPlus(double value) const ;
+			double fSoftSign(double value) const ;
+			double fBinaryStep(double value) const ;
+			double fTanH(double value) const ;
+			double fArcTan(double value) const ;
+			double fIdentity(double value) const ;
+			double fBentIdentity(double value) const ;
+			double fGaussian(double value) const ;
 
 			double dSoftMax(double value) const ;
 			double dSoftStep(double value) const ;
@@ -69,14 +69,14 @@ namespace neural {
 			double element;
 			Name selected_func;
 			
-			double Maximum() const ;
-			double Minimum() const ;
-			double Mean()const ;
-			double MaxQtyBoolean() const ;
-			double MinQtyBoolean() const ;
-			double Sum() const ;
-			double BooleanSum() const ;
-			double Normalize(double value) const ;
+			double fMaximum() const ;
+			double fMinimum() const ;
+			double fMean()const ;
+			double fMaxQtyBoolean() const ;
+			double fMinQtyBoolean() const ;
+			double fSum() const ;
+			double fBooleanSum() const ;
+			double fNormalize(double value) const ;
 
 			void init();
 		public:
@@ -85,9 +85,11 @@ namespace neural {
 			void Clear();
 
 			double operator()() const;
-			double operator(double value) const;
+			double operator()(double value) const;
 			void operator+(double value);
 	};
 }
+
+#include "../NeuralFunctions.cpp"
 
 #endif

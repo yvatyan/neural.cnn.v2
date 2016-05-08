@@ -9,7 +9,7 @@
 #include "NeuralFunctions.h"
 #include "NeuralData.h"
 
-// TODO: move common part of "Properties" func to ILayer, add boost json support
+// TODO: write "Properties" func with boost json support
 // TODO: layers io is fixed size, so need "Scaling" layer to bring various input to that size
 
 namespace neural {
@@ -28,15 +28,20 @@ namespace neural {
 			Buffer* output;
 			Buffer* deltas;
 			std::string layer_name;
-			Function* function;
+            union Function_union {
+                Activation* act;
+                Combination* comb;
+            } *function;
 			ILayer::Type layer_type;
 		public:
-			ILayer(const std::string& name, ILayer::Type layer, Function* function);
+			ILayer(const std::string& name, ILayer::Type layer);
+			ILayer(const std::string& name, ILayer::Type layer, const Activation& func);
+			ILayer(const std::string& name, ILayer::Type layer, const Combination& func);
 			virtual ~ILayer() {};
 			
 			virtual void CalculateOutput(ILayer* prevLayer) { return; }
 			virtual void CalculateDeltas(ILayer* prev_layer) { return; }
-			virtual void DoCorrections() { return; }
+			virtual void DoCorrections(ILayer* prev_layer, double ffactor) { return; }
 
 			virtual const std::string Properties() const = 0;
 			
@@ -68,18 +73,16 @@ namespace neural {
 			std::vector<int> strides;
 
 			void generateKernel(size_t index, size_t z, size_t y, size_t x); 
-			int getHeightZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
-			int getWidthZeroPadding(size_t kernel_index, size_t input_d, size_t input_h, size_t input_w);
-			bool canConvertToOutputHeight(size_t input_data_height) const;
-			bool canConvertToOutputWidth(size_t input_data_width) const;
-			bool canConvertToDeltasHeight(size_t input_delta_height) const;
-			bool canConvertToDeltasWidth(size_t input_delta_width) const;
+			double getHeightZeroPadding(size_t kernel_index, size_t input_h) const;
+			double getWidthZeroPadding(size_t kernel_index, size_t input_w) const;
+			bool canConvertHeight(size_t input_data_height) const;
+			bool canConvertWidth(size_t input_data_width) const;
 		public:
-			Convolution(const std::string& name, const Activation func, std::vector< boost::tuple< size_t, size_t, int > kernels, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
+			Convolution(const std::string& name, const Activation& func, std::vector< boost::tuple< size_t, size_t, int > > kernels, size_t input_depth, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
 	
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
-			void DoCorrections();
+			void DoCorrections(ILayer* prev_layer, double ffactor);
 			
 			const std::string Properties() const;
 	};
@@ -88,7 +91,7 @@ namespace neural {
 			size_t kernel_width;
 			size_t kernel_height;
 		public:
-			Pulling(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
+			Pulling(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
@@ -97,13 +100,13 @@ namespace neural {
 	};
 	class FullConnected : public ILayer {
 		public:
-			FullConnected(const std::string& name, FunctionCollection::Name function, size_t x);
-			FullConnected(const std::string& name, FunctionCollection::Name function, size_t pse_w, size_t x);
-			FullConnected(const std::string& name, FunctionCollection::Name function, size_t pse_h, size_t pse_w, size_t x);
+			FullConnected(const std::string& name, const Activation& func, size_t x);
+			FullConnected(const std::string& name, const Activation& func, size_t pse_w, size_t x);
+			FullConnected(const std::string& name, const Activation& func, size_t pse_h, size_t pse_w, size_t x);
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
-			void DoCorrections();
+			void DoCorrections(ILayer* prev_layer, double ffactor);
 			
 			const std::string Properties() const;
 	};
@@ -112,7 +115,7 @@ namespace neural {
 			size_t kernel_width;
 			size_t kernel_height;
 		public:
-			Simplifying(const std::string& name, FunctionCollection::Name function, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
+			Simplifying(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
 			
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);

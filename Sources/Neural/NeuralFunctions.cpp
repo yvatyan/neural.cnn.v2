@@ -69,11 +69,7 @@ double Activation::dGaussian(double value) const {
 void Activation::init() {
 	param1 = 0;	
 }
-Activation::Activation(Name function) {
-	selected_func = function;
-	init();
-}
-Activation::Activation(Name function, double parameter) {
+Activation::Activation(Name function, double parameter = 1.) {
 	selected_func = function;
 	param1 = parameter;
 	init();
@@ -129,9 +125,6 @@ double Combination::fSum() const {
 double Combination::fBooleanSum() const {
 	return accumulated_sum;
 }
-double Combination::fNormalize(double value) const {
-	return value / accumulated_sum;
-}
 void Combination::init() {
 	if(Maximum == selected_func) {
 		element = DBL_MIN;
@@ -150,7 +143,6 @@ void Combination::Clear() {
 	init();
 }
 double Combination::operator()() const {
-	assert(Normalize != selected_func);
 	switch(selected_func) {
 		case	Maximum		:	return fMaximum();
 		case	Minimum		:	return fMinimum();
@@ -160,10 +152,6 @@ double Combination::operator()() const {
 		case	Sum		:	return fSum();
 		case	BooleanSum	:	return fBooleanSum();
 	};
-}
-double Combination::operator()(double value) const {
-	assert(Normalize == selected_func);
-	return fNormalize(value);
 }
 void Combination::operator+(double value) {
 
@@ -190,9 +178,6 @@ void Combination::operator+(double value) {
 						break;
 		case	BooleanSum	:
 						accumulated_sum += (bool) value;
-						break;
-		case	Normalize	:
-						accumulated_sum += value;
 						break;
 	};
 }

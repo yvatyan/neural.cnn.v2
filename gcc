@@ -1,0 +1,1 @@
+g++.exe Testing/NeuralLayers.cpp -o Executables/NeuralLayers.exe   -fexpensive-optimizations -O3 -I ../../../../../../Dev-Cpp/boost_1_41_0 -L ../../../../../../Dev-Cpp/boost_1_41_0/stage/lib -llibboost_system-mgw34-mt-1_41 -lws2_32 -liphlpapi -llibboost_thread-mgw34-mt-d-1_41 -lmswsock

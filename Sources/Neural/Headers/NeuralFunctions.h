@@ -44,7 +44,6 @@ namespace neural {
 
 			void init();
 		public:
-			Activation(Name function);
 			Activation(Name function, double parameter);
 
 			double operator()(double value) const;
@@ -61,7 +60,6 @@ namespace neural {
 				MinQtyBoolean = 5,
 				Sum = 6,
 				BooleanSum = 7,
-				Normalize = 8
 			};
 		private:
 			double accumulated_sum;
@@ -76,7 +74,6 @@ namespace neural {
 			double fMinQtyBoolean() const ;
 			double fSum() const ;
 			double fBooleanSum() const ;
-			double fNormalize(double value) const ;
 
 			void init();
 		public:
@@ -85,7 +82,6 @@ namespace neural {
 			void Clear();
 
 			double operator()() const;
-			double operator()(double value) const;
 			void operator+(double value);
 	};
 }

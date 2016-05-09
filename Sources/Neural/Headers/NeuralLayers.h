@@ -2,7 +2,7 @@
 #define NEURALLAYERS_H_
 
 #include <string>
-
+#include <iostream>
 #include <vector>
 #include <boost/tuple/tuple.hpp>
 
@@ -13,7 +13,11 @@
 // TODO: layers io is fixed size, so need "Scaling" layer to bring various input to that size
 
 namespace neural {
-	class ILayer {
+
+	class Convolution;
+    void ReadKernels(std::istream& fileIn, Convolution& l);
+
+    class ILayer {
 		public:
 			enum Type {
 				Input,
@@ -28,7 +32,7 @@ namespace neural {
 			Buffer* output;
 			Buffer* deltas;
 			std::string layer_name;
-            union Function_union {
+            struct Function_struct {
                 Activation* act;
                 Combination* comb;
             } *function;
@@ -60,7 +64,7 @@ namespace neural {
 	class Output : public ILayer {
 		public:
 			Output(const std::string& name, size_t x);
-			Output(const std::string& name, size_t pse_w, size_t x);
+			Output(const std::string& name, size_t pse_h, size_t x);
 			Output(const std::string& name, size_t pse_h, size_t pse_w, size_t x);
 
 			void CalculateOutput(ILayer* prev_layer);
@@ -85,11 +89,15 @@ namespace neural {
 			void DoCorrections(ILayer* prev_layer, double ffactor);
 			
 			const std::string Properties() const;
+
+            friend void ReadKernels(std::istream& fileIn, ILayer* layer);
 	};
 	class Pulling : public ILayer {
 		private:
-			size_t kernel_width;
 			size_t kernel_height;
+			size_t kernel_width;
+            bool canConvertHeight(size_t input_data_height) const ;
+            bool canConvertWidth(size_t input_data_width) const ;
 		public:
 			Pulling(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
 			
@@ -122,8 +130,28 @@ namespace neural {
 			
 			const std::string Properties() const;			
 	};
-}
 
+
+    void ReadKernels(std::istream& fileIn, ILayer* layer) {
+
+        Convolution* l = static_cast<Convolution*>(layer);
+
+        for(int i = 0; i < l->strides.size(); ++i) {
+            fileIn >> l->strides[i];
+        }
+        for(int k = 0; k < l->layer_kernels.size(); ++k) {
+            for(int d = 0; d < l->layer_kernels[k]->Depth3D(); ++d) {
+                for(int h = 0; h < l->layer_kernels[k]->Height3D(); ++h) {
+                    for(int w = 0; w < l->layer_kernels[k]->Width3D(); ++w) {
+                        double value;
+                        fileIn >> value;
+                        l->layer_kernels[k]->ElementTo(d, h, w, value);
+                    }
+                }
+            }
+        }
+    }
+}
 #include "../NeuralLayers.cpp"
 
 #endif

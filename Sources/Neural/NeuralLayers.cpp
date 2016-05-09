@@ -2,19 +2,24 @@
 
 using namespace neural;
 
+#include <fstream>
+
+std::ofstream fileOut("report.log");
+
 ILayer::ILayer(const std::string& name, ILayer::Type layer)
 	: layer_name(name)
 	, layer_type(layer)
 {
 	deltas = NULL;
 	output = NULL;
-    function = NULL;
+    function = new Function_struct;
+    function->act = new Activation(Activation::Identity);
 }
 ILayer::ILayer(const std::string& name, ILayer::Type layer, const Activation& func)
 	: layer_name(name)
 	, layer_type(layer)
 {
-    function = new Function_union;
+    function = new Function_struct;
     function->act = new Activation(func); 
 	deltas = NULL;
 	output = NULL;
@@ -23,8 +28,9 @@ ILayer::ILayer(const std::string& name, ILayer::Type layer, const Combination& f
 	: layer_name(name)
 	, layer_type(layer)
 {
-    function = new Function_union;
+    function = new Function_struct;
     function->comb = new Combination(func); 
+    function->act = new Activation(Activation::Identity); 
 	deltas = NULL;
 	output = NULL;
 }
@@ -100,14 +106,14 @@ const Buffer& Output::DataOutput() const {
 
 double Convolution::getHeightZeroPadding(size_t index, size_t input_h) const {
 
-	double zero_pad_h = (strides[index] * (output->Height3D() - 1) - input_h - layer_kernels[index]->Height3D()) / 2.;
-
+	double zero_pad_h = (strides[index] * (output->Height3D() - 1) - input_h + layer_kernels[index]->Height3D()) / 2.;
+fileOut << "Height: " << strides[index] << ' ' << output->Height3D() << ' ' << input_h << ' ' << layer_kernels[index]->Height3D() << std::endl;
 	return zero_pad_h;
 }
 double Convolution::getWidthZeroPadding(size_t index, size_t input_w) const {
 
-	double zero_pad_w = (strides[index] * (output->Width3D() - 1) - input_w - layer_kernels[index]->Width3D()) / 2.;
-
+	double zero_pad_w = (strides[index] * (output->Width3D() - 1) - input_w + layer_kernels[index]->Width3D()) / 2.;
+fileOut << "Width: " << strides[index] << ' ' << output->Width3D() << ' ' << input_w << ' ' << layer_kernels[index]->Width3D() << std::endl;
 	return zero_pad_w;
 }
 bool Convolution::canConvertHeight(size_t input_data_height) const {
@@ -148,6 +154,7 @@ Convolution::Convolution(const std::string& name, const Activation& func, std::v
 		strides[i] = kernels[i].get<2>();
 	}
 	output = new Buffer(kernels.size(), y, x, 0.);
+	deltas = new Buffer(kernels.size(), y, x, 0.);
 }
 void Convolution::CalculateOutput(ILayer* prev_layer) {
 	assert(canConvertHeight(static_cast<Convolution*>(prev_layer)->output->Height3D()));
@@ -157,6 +164,7 @@ void Convolution::CalculateOutput(ILayer* prev_layer) {
 	for(int k = 0; k < layer_kernels.size(); ++k) { // kernels.size == output.depth
 		int zph = (int)getHeightZeroPadding(k, static_cast<Convolution*>(prev_layer)->output->Height3D());
     	int zpw = (int)getWidthZeroPadding(k, static_cast<Convolution*>(prev_layer)->output->Width3D());
+       fileOut << "zph & zpw: " << zph << ' ' << zpw << std::endl;
         for(int i = 0; i < output->Height3D(); ++i) {
 			for(int j = 0 ; j < output->Width3D(); ++j) {
 				double value = 0.;
@@ -164,10 +172,17 @@ void Convolution::CalculateOutput(ILayer* prev_layer) {
 					for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
 						for(int width = 0; width < layer_kernels[k]->Width3D(); ++width) {
 
-							int alpha = j * strides[k] + width - zpw; 
-							int beta = i * strides[k] + height - zph;
+							int alpha = i * strides[k] + height - zph; 
+							int beta = j * strides[k] + width - zpw;
+                            fileOut << "i & j           : " << i << ' ' << j << std::endl;
+                            fileOut << "|-height & width: " << height << ' ' << width << std::endl;
+                            fileOut << "  |-alpha & beta: " << alpha << ' ' << beta << std::endl;
 							     if(alpha < 0 || beta < 0) continue;
-							else if(alpha > static_cast<Convolution*>(prev_layer)->output->Height3D() || beta > static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
+							else if(alpha >= static_cast<Convolution*>(prev_layer)->output->Height3D() || beta >= static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
+                            
+//                            fileOut << "Prev layer output: " << static_cast<Convolution*>(prev_layer)->output->ElementAt(depth, alpha, beta) << std::endl;
+  //                          fileOut << "Kernel " << k << " element at " << depth << ' ' << height << ' ' << width << " is ";
+                            //fileOut << layer_kernels[k]->ElementAt(depth, height, width) << std::endl;
 
 							value += static_cast<Convolution*>(prev_layer)->function->act->operator()(static_cast<Convolution*>(prev_layer)->output->ElementAt(depth, alpha, beta)) * layer_kernels[k]->ElementAt(depth, height, width);
 						}
@@ -193,10 +208,10 @@ void Convolution::CalculateDeltas(ILayer* prev_layer) {
 					for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
 						for(int width = 0; width < layer_kernels[k]->Width3D(); ++width) {
 
-                            int alpha = j * strides[k] + width - zpw;
-                            int beta = i * strides[k] + height - zph;
+                            int alpha = i * strides[k] + height - zph;
+                            int beta = j * strides[k] + width - zpw;
                                  if(alpha < 0 || beta < 0) continue;
-							else if(alpha > static_cast<Convolution*>(prev_layer)->output->Height3D() || beta > static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
+							else if(alpha >= static_cast<Convolution*>(prev_layer)->output->Height3D() || beta >= static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
 
 							static_cast<Convolution*>(prev_layer)->deltas->ElementTo(depth, alpha, beta, static_cast<Convolution*>(prev_layer)->deltas->ElementAt(depth, alpha, beta) + layer_kernels[k]->ElementAt(depth, height,width) * deltas->ElementAt(k, i, j));
 						}
@@ -221,10 +236,10 @@ void Convolution::DoCorrections(ILayer* prev_layer, double ffactor) {
                     for(int height = 0; height < layer_kernels[k]->Height3D(); ++height) {
                         for(int width = 0; width < layer_kernels[k]->Width3D(); ++width) {
 
-                            int alpha = j * strides[k] + width - zpw;
-                            int beta = i * strides[k] + height - zph;
+                            int alpha = i * strides[k] + height - zph;
+                            int beta = j * strides[k] + width - zpw;
                                  if(alpha < 0 || beta < 0) continue;
-							else if(alpha > static_cast<Convolution*>(prev_layer)->output->Height3D() || beta > static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
+							else if(alpha >= static_cast<Convolution*>(prev_layer)->output->Height3D() || beta >= static_cast<Convolution*>(prev_layer)->output->Width3D()) continue;
 
                             layer_kernels[k]->ElementTo(depth, height, width, layer_kernels[k]->ElementAt(depth, height, width) + ffactor * static_cast<Convolution*>(prev_layer)->output->ElementAt(depth, alpha, beta) * deltas->ElementAt(k, i, j) * function->act->operator[](output->ElementAt(k, i, j)));
                         }
@@ -235,5 +250,74 @@ void Convolution::DoCorrections(ILayer* prev_layer, double ffactor) {
     }
 }
 const std::string Convolution::Properties() const {
+    return "";
+}
+
+bool Pulling::canConvertHeight(size_t input_data_height) const {
+    return input_data_height % kernel_height == 0; 
+}
+bool Pulling::canConvertWidth(size_t input_data_width) const {
+    return input_data_width % kernel_width == 0;
+}
+Pulling::Pulling(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x)
+    : ILayer(name, ILayer::Pulling, func) 
+{
+    kernel_height = kernelHeight;
+    kernel_width = kernelWidth;
+
+    output = new Buffer(z, y, x, 0.);
+    deltas = new Buffer(z, y, x, 0.);
+}
+void Pulling::CalculateOutput(ILayer* prev_layer) {
+	assert(canConvertHeight(static_cast<Pulling*>(prev_layer)->output->Height3D()));
+	assert(canConvertWidth(static_cast<Pulling*>(prev_layer)->output->Width3D()));
+	assert(output->Depth3D() == static_cast<Pulling*>(prev_layer)->output->Depth3D());
+
+
+    for(int d = 0; d < output->Depth3D(); ++d) {
+        for(int h = 0; h < output->Height3D(); ++h) {
+            for(int w = 0; w < output->Width3D(); ++w) {
+                for(int i = 0; i < kernel_height; ++i) {
+                    for(int j = 0; j < kernel_width; ++j) {
+
+                        int alpha = h * kernel_height + i; 
+						int beta = w * kernel_width + j;
+						assert(alpha >= 0 && beta >= 0);
+						assert(alpha < static_cast<Pulling*>(prev_layer)->output->Height3D() && beta < static_cast<Pulling*>(prev_layer)->output->Width3D());
+
+                       function->comb->operator+( static_cast<Pulling*>(prev_layer)->output->ElementAt(d, alpha, beta) );
+                    }
+                }
+                output->ElementTo(d, h, w, function->comb->operator()());
+                function->comb->Clear();
+            }
+        }
+    }
+}
+void Pulling::CalculateDeltas(ILayer* prev_layer) {
+	assert(canConvertHeight(static_cast<Pulling*>(prev_layer)->deltas->Height3D()));
+	assert(canConvertWidth(static_cast<Pulling*>(prev_layer)->deltas->Width3D()));
+	assert(deltas->Depth3D() == static_cast<Pulling*>(prev_layer)->deltas->Depth3D());
+
+
+    for(int d = 0; d < deltas->Depth3D(); ++d) {
+        for(int h = 0; h < deltas->Height3D(); ++h) {
+            for(int w = 0; w < deltas->Width3D(); ++w) {
+                for(int i = 0; i < kernel_height; ++i) {
+                    for(int j = 0; j < kernel_width; ++j) {
+
+                        int alpha = h * kernel_height + i; 
+						int beta = w * kernel_width + j;
+						assert(alpha >= 0 && beta >= 0);
+						assert(alpha < static_cast<Pulling*>(prev_layer)->deltas->Height3D() && beta < static_cast<Pulling*>(prev_layer)->deltas->Width3D());
+                        
+                        static_cast<Pulling*>(prev_layer)->deltas->ElementTo(alpha, beta, d, deltas->ElementAt(d, h, w));
+                    }
+                }
+            }
+        }
+    }
+}
+const std::string Pulling::Properties() const {
     return "";
 }

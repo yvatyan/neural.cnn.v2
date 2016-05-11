@@ -35,13 +35,19 @@ namespace neural {
             struct Function_struct {
                 Activation* act;
                 Combination* comb;
+
+                ~Function_struct() {
+                    if(act != NULL) delete act;
+                    if(comb != NULL) delete comb;
+                }
+
             } *function;
 			ILayer::Type layer_type;
 		public:
 			ILayer(const std::string& name, ILayer::Type layer);
 			ILayer(const std::string& name, ILayer::Type layer, const Activation& func);
 			ILayer(const std::string& name, ILayer::Type layer, const Combination& func);
-			virtual ~ILayer() {};
+			virtual ~ILayer();
 			
 			virtual void CalculateOutput(ILayer* prevLayer) { return; }
 			virtual void CalculateDeltas(ILayer* prev_layer) { return; }
@@ -56,7 +62,7 @@ namespace neural {
 	class Input : public ILayer {
 		public:
 			Input(const std::string& name, size_t z, size_t y, size_t x);
-			~Input() {};	
+			~Input() {};
 
 			const std::string Properties() const ;
 			void DataInput(const Buffer& input);
@@ -66,6 +72,7 @@ namespace neural {
 			Output(const std::string& name, size_t x);
 			Output(const std::string& name, size_t pse_h, size_t x);
 			Output(const std::string& name, size_t pse_h, size_t pse_w, size_t x);
+            ~Output() {};
 
 			void CalculateOutput(ILayer* prev_layer);
 			const std::string Properties() const ;
@@ -83,7 +90,8 @@ namespace neural {
 			bool canConvertWidth(size_t input_data_width) const;
 		public:
 			Convolution(const std::string& name, const Activation& func, std::vector< boost::tuple< size_t, size_t, int > > kernels, size_t input_depth, size_t y, size_t x); // kernel = { kernel_h, kernel_w, stride } 
-	
+	        ~Convolution();
+
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			void DoCorrections(ILayer* prev_layer, double ffactor);
@@ -100,7 +108,8 @@ namespace neural {
             bool canConvertWidth(size_t input_data_width) const ;
 		public:
 			Pulling(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
-			
+			~Pulling() {};
+
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			
@@ -108,13 +117,11 @@ namespace neural {
 	};
 	class FullConnected : public ILayer {
 		private:
-			void mulVectorByMatrix(const Buffer& vector, const Buffer& matrix, Buffer& _output);
-			void mulMatrixByVector(const Buffer& matrix, const Buffer& vector, Buffer& _output);
+            Buffer* weights;
 		public:
-			FullConnected(const std::string& name, const Activation& func, size_t x);
-			FullConnected(const std::string& name, const Activation& func, size_t pse_w, size_t x);
-			FullConnected(const std::string& name, const Activation& func, size_t pse_h, size_t pse_w, size_t x);
-			
+			FullConnected(const std::string& name, const Activation& func, size_t input, size_t output);
+			~FullConnected();
+
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			void DoCorrections(ILayer* prev_layer, double ffactor);
@@ -123,11 +130,12 @@ namespace neural {
 	};
 	class Simplifying : public ILayer {
 		private:
-			size_t kernel_width;
 			size_t kernel_height;
+			size_t kernel_width;
 		public:
 			Simplifying(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x);
-			
+			~Simplifying() {};
+
 			void CalculateOutput(ILayer* prev_layer);
 			void CalculateDeltas(ILayer* prev_layer);
 			

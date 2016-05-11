@@ -14,6 +14,7 @@ ILayer::ILayer(const std::string& name, ILayer::Type layer)
 	output = NULL;
     function = new Function_struct;
     function->act = new Activation(Activation::Identity);
+    function->comb = NULL;
 }
 ILayer::ILayer(const std::string& name, ILayer::Type layer, const Activation& func)
 	: layer_name(name)
@@ -21,6 +22,7 @@ ILayer::ILayer(const std::string& name, ILayer::Type layer, const Activation& fu
 {
     function = new Function_struct;
     function->act = new Activation(func); 
+    function->comb = NULL;
 	deltas = NULL;
 	output = NULL;
 }
@@ -33,6 +35,11 @@ ILayer::ILayer(const std::string& name, ILayer::Type layer, const Combination& f
     function->act = new Activation(Activation::Identity); 
 	deltas = NULL;
 	output = NULL;
+}
+ILayer::~ILayer() {
+    delete output;
+    delete deltas;
+    delete function;
 }
 const std::string ILayer::LayerTypeName() const {
 	switch (layer_type) {
@@ -53,6 +60,7 @@ Input::Input(const std::string& name, size_t z, size_t y, size_t x)
 	: ILayer(name, ILayer::Input)
 {
 	output = new Buffer(z, y, x, 0.);
+	deltas = new Buffer(z, y, x, 0.);
 }
 const std::string Input::Properties() const {
     return "";
@@ -155,6 +163,9 @@ Convolution::Convolution(const std::string& name, const Activation& func, std::v
 	}
 	output = new Buffer(kernels.size(), y, x, 0.);
 	deltas = new Buffer(kernels.size(), y, x, 0.);
+}
+Convolution::~Convolution() {
+    for(int i = layer_kernels.size() - 1; i >= 0; --i) delete layer_kernels[i];
 }
 void Convolution::CalculateOutput(ILayer* prev_layer) {
 	assert(canConvertHeight(static_cast<Convolution*>(prev_layer)->output->Height3D()));
@@ -322,29 +333,109 @@ const std::string Pulling::Properties() const {
     return "";
 }
 
-void FullConnected::mulVectorByMatrix(const Buffer& vector, const Buffer& matrix, Buffer& _output) {
+FullConnected::FullConnected(const std::string& name, const Activation& func, size_t output_, size_t input) 
+    : ILayer(name, ILayer::FullConnected, func)  
+{
+   output = new Buffer(output_, 0.); 
+   deltas = new Buffer(output_, 0.);
+   weights = new Buffer(input, output_, 0.);
+}
+void FullConnected::CalculateOutput(Ilayer* prev_layer) {
 	
-	assert(vector.Size() == matrix.Height2D());
-	assert(matrix.Width2D() == _output.Size();
+	assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
 
-    for(int h = 0; h < matrix.Width2D(); ++h)
+    FullConnected* input_vector = static_cast<FullConnected>(prev_layer);
+    for(int h = 0; h < weights->Width2D(); ++h)
         double value = 0;
-    	for(int i = 0; i < vector.Size(); ++i) {
-            value += vector.ElementAt(i) * matrix.ElementAt(i, h);
+    	for(int i = 0; i < input_vector->output->Size(); ++i) {
+            value += input_vector->function->act->operator()(input_vector->output->ElementAt(i)) * weights->ElementAt(i, h);
 	    }
-	    _output.ElementTo(h, value); 
+	    output->ElementTo(h, value); 
     }
 }
-void FullConnected::mulMatrixByVector(const Buffer& matrix, const Buffer& vector, Buffer& _output) {
+void FullConnected::~FullConnected() {
+    delete weights;
+}
+void FullConnected::CalculateDeltas(ILayer* prev_layer) {
     
-    assert(vector.Size() == matrix.Width2D());
-    assert(matrix.Height2D() == _output.Size());
+    assert(static_cast<FullConnected*>(prev_layer)->deltas->Size() == weights->Height2D());
 
-    for(int h = 0; h < matrix.Height2D(); ++h) {
+    FullConnected* deltas_vector = static_cast<FullConnected*>(prev_layer);
+    for(int h = 0; h < weights->Height2D(); ++h) {
         double value = 0;
-        for(int i = 0; i < vector.Size(); ++i) {
-            value += vector.ElementAt(i) * matrix.ElementAt(h, i);
+        for(int i = 0; i < deltas_vector->deltas->Size(); ++i) {
+            value += deltas->ElementAt(i) * weights->ElementAt(h, i);
         }
-        _output.ElementTo(h, value);
+        deltas_vector->deltas->ElementTo(h, value);
     }
+}
+void FullConnected::DoCorrections(ILayer* prev_layer, double ffactor) {
+    
+    assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
+    
+    for(int i = 0; i < weights->Height2D(); ++i) {
+        for(int j = 0; j < weights->Width2D(); ++j) {
+            // w[i, j] += in[i] * ffactor * f'(o[j]) * d[j];
+            double value = static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) * ffactor * function->act->operator[](output->ElementAt(j)) * deltas->ElementAt(j);
+            weights->ElementTo(i, j, weights->ElementAt(i, j) + value);
+        }
+    }
+}
+const std::string Properties() const {
+    return "";
+}
+
+Simplifying::Simplifing(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x)
+    : Simplifying(name, ILayer::Simplifing, func)
+{
+    kernel_height = kernelHeight;
+    kernel_width = kernelWidth;
+
+    output = new Buffer(z, y, x, 0.);
+    deltas = new Buffer(z, y, x, 0.);
+}
+void Simplifying::CalculateOutput(ILayer* prev_layer) {
+    
+    assert(static_cast<Simplifying>(prev_layer)->output->Depth3D() == output->Depth3D());
+    assert(static_cast<Simplifying>(prev_layer)->output->Height3D() == output->Height3D());
+    assert(static_cast<Simplifying>(prev_layer)->output->Width3D() == output->Width3D());
+    assert(output->Height3D() % kernel_height == 0);
+    assert(output->Width3D() % kernel_width == 0);
+    
+    for(int d = 0; d < output->Depth3D(); ++d)
+        for(int h = 0; h < output->Height3D(); h += kernel_height) {
+            for(int w = 0; w < output->Width3D(); w += kernel_width) {
+                for(int i = h; i < h + kernel_height; ++i) {
+                    for(int j = w; j < w + kernel_width; ++j) {
+                        function->comb->operator+(static_cast<Simplyfing>(prev_layer)->ElementAt(d, i, j));
+                    }
+                }
+                for(int i = h; i < h + kernel_height; ++i) {
+                    for(int j = w; j < w + kernel_width; ++j) {
+                        output->ElementTo(d, i, j, function->comb->operator());
+                    }
+                }
+                function->comb->Clear();
+            }
+        }
+    }
+}
+void Simplifying::CalculateDeltas(ILayer* prev_layer) {
+
+    assert(static_cast<Simplifying>(prev_layer)->deltas->Depth3D() == deltas->Depth3D());
+    assert(static_cast<Simplifying>(prev_layer)->deltas->Height3D() == deltas->Height3D());
+    assert(static_cast<Simplifying>(prev_layer)->deltas->Width3D() == deltas->Width3D());
+    assert(deltas->Height3D() % kernel_height == 0);
+    assert(deltas->Width3D() % kernel_width == 0);
+
+    for(int d = 0; d < deltas->Depth3D(); ++d) {
+        for(int h = 0; h < deltas->Height3D(); ++h) {
+            for(int w = 0; w < deltas->Width3D(); ++w) {
+                static_cast<Simplifying*>(prev_layer)->deltas->ElementTo(d, h, w, deltas->ElementAt(d, h, w));
+            }
+        }
+    }
+}
+const std::string Properties() const {
+    return "";
 }

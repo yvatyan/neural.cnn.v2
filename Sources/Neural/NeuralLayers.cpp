@@ -321,3 +321,30 @@ void Pulling::CalculateDeltas(ILayer* prev_layer) {
 const std::string Pulling::Properties() const {
     return "";
 }
+
+void FullConnected::mulVectorByMatrix(const Buffer& vector, const Buffer& matrix, Buffer& _output) {
+	
+	assert(vector.Size() == matrix.Height2D());
+	assert(matrix.Width2D() == _output.Size();
+
+    for(int h = 0; h < matrix.Width2D(); ++h)
+        double value = 0;
+    	for(int i = 0; i < vector.Size(); ++i) {
+            value += vector.ElementAt(i) * matrix.ElementAt(i, h);
+	    }
+	    _output.ElementTo(h, value); 
+    }
+}
+void FullConnected::mulMatrixByVector(const Buffer& matrix, const Buffer& vector, Buffer& _output) {
+    
+    assert(vector.Size() == matrix.Width2D());
+    assert(matrix.Height2D() == _output.Size());
+
+    for(int h = 0; h < matrix.Height2D(); ++h) {
+        double value = 0;
+        for(int i = 0; i < vector.Size(); ++i) {
+            value += vector.ElementAt(i) * matrix.ElementAt(h, i);
+        }
+        _output.ElementTo(h, value);
+    }
+}

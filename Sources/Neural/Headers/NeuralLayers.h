@@ -107,6 +107,9 @@ namespace neural {
 			const std::string Properties() const;
 	};
 	class FullConnected : public ILayer {
+		private:
+			void mulVectorByMatrix(const Buffer& vector, const Buffer& matrix, Buffer& _output);
+			void mulMatrixByVector(const Buffer& matrix, const Buffer& vector, Buffer& _output);
 		public:
 			FullConnected(const std::string& name, const Activation& func, size_t x);
 			FullConnected(const std::string& name, const Activation& func, size_t pse_w, size_t x);

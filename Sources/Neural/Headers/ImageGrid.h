@@ -7,20 +7,20 @@
 
 class ImageGrid {
 	private:
-        matrix2d< Matrix<RGB> > grid;
+        matrix2d< my::Matrix<my::RGB> > grid;
         size_t stride_y;
 	    size_t stride_x;
 
     public:
-        ImageGrid(const ImageBMPcore& image, size_t stride_y, size_t stride_x);
+        ImageGrid(const my::ImageBMPcore& image, size_t stride_y, size_t stride_x);
 
-        const Matrix<RGB>& ImageAt(size_t y, size_t x) const;
+        const my::Matrix<my::RGB>& ImageAt(size_t y, size_t x) const;
         Buffer ImageBufferAt(size_t y, size_t x) const;
 
-        ImageBMPcore Ruler() const;
+        my::Matrix<my::RGB> Ruler() const;
         
-        size_t ImageSizeX() const;
-        size_t ImageSizeY() const;
+        size_t GridSizeX() const;
+        size_t GridSizeY() const;
 };
 
 #endif

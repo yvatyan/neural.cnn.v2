@@ -1,6 +1,8 @@
 #include "Headers/ImageGrid.h"
 
-ImageGrid(const ImageBMPcore& image, size_t stride_y, size_t stride_x) 
+using namespace my;
+
+ImageGrid::ImageGrid(const ImageBMPcore& image, size_t stride_y, size_t stride_x) 
     : grid(image.ImHeight() / stride_y, image.ImWidth() / stride_x)
     , stride_y(stride_y)
     , stride_x(stride_x)
@@ -16,14 +18,14 @@ ImageGrid(const ImageBMPcore& image, size_t stride_y, size_t stride_x)
         }
     }
 }
-const Matrix<RGB>& ImageAt(size_t y, size_t x) const {
+const Matrix<RGB>& ImageGrid::ImageAt(size_t y, size_t x) const {
     
     assert(y < grid.Height());
     assert(x < grid.Width());
 
     return grid[y][x]; 
 }
-Buffer ImageBufferAt(size_t y, size_t x) const {
+Buffer ImageGrid::ImageBufferAt(size_t y, size_t x) const {
     
     assert(y < grid.Height());
     assert(x < grid.Width());
@@ -43,4 +45,41 @@ Buffer ImageBufferAt(size_t y, size_t x) const {
         }
     }
     return buf;
+}
+Matrix<RGB> ImageGrid::Ruler() const {
+    
+    Matrix<RGB> res(grid.Height()*(stride_y + 1) - 1, grid.Width()*(stride_x + 1) - 1);
+    
+    for(int i = 0; i < grid.Height(); ++i) {
+        for(int j = 0; j < grid.Width(); ++j) {
+            for(int y = 0; y <= stride_y; ++y) {
+                for(int x = 0; x <= stride_x; ++x) {
+
+                    int alpha = i * (stride_y + 1)+ y;
+                    int beta = j * (stride_x + 1) + x;
+                    if(x == stride_x || y == stride_y) {
+                        bool line_to_x = (x == stride_x);
+                        bool line_to_y = (y == stride_y);
+                        if( alpha < res.Height() && beta < res.Width() ) {
+                            RGB color = grid[i][j][y - line_to_y][x - line_to_x];
+                            color.R = 255 - color.R;
+                            color.G = 255 - color.G;
+                            color.B = 255 - color.B;
+
+                            res[alpha][beta] = color;
+                        }
+                    }
+                    else {
+                        res[alpha][beta] = grid[i][j][y][x];
+                    }
+                }
+            }
+        }
+    }
+}
+size_t ImageGrid::GridSizeY() const {
+    return grid.Height();
+}
+size_t ImageGrid::GridSizeX() const {
+    return grid.Width();
 }

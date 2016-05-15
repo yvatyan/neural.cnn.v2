@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <string>
 
 #include "../Sources/Neural/Headers/NeuralLayers.h"
@@ -10,12 +11,15 @@ using namespace neural;
 
 int main() {
     
+    cout << fixed << setprecision(4);
+
     Activation logistic(Activation::SoftStep);
     Activation identity(Activation::Identity);
 
     ILayer* input  = new Input("in", 1, 28, 28);
-    ILayer* full1  = new FullConnected("full1", logistic, 8000, 784);
-    ILayer* full2  = new FullConnected("full2", identity, 10, 8000);
+    ILayer* inputD = new Input("inD", 1, 1, 10);
+    ILayer* full1  = new FullConnected("full1", logistic, 5000, 784);
+    ILayer* full2  = new FullConnected("full2", identity, 10, 5000);
     ILayer* output = new Output("out", 10);
 
     ImageBMPcore image;
@@ -55,7 +59,29 @@ int main() {
                 cout << endl;
 
                 //if(skip) cin >> skip;
+                
+                Buffer deltas(1, 1, 10, 0.);
+                for(int s = 0; s < deltas.Size(); ++s) {
 
+                    double value = 0.;
+                    if(s == i) value = 1.;
+                    deltas.ElementTo(s, value - softmax(ou.ElementAt(s)));
+                }
+
+                static_cast<Input*>(inputD)->DeltaInput(deltas);
+                inputD->CalculateDeltas(full2);
+                full2->CalculateDeltas(full1);
+
+                full1->DoCorrections(input, 0.8);
+                full2->DoCorrections(full1, 0.8);
+                output->CalculateOutput(full2);
+
+                Buffer ou2(static_cast<Output*>(output)->DataOutput());
+                e_sum = 0.;
+                for(int s = 0; s < ou2.Size(); ++s) e_sum += pow(M_E, ou2.ElementAt(s));
+                Activation softmax2(Activation::SoftMax, e_sum);
+                for(int s = 0; s < ou2.Size(); ++s) cout << softmax2(ou2.ElementAt(s)) << ' ';
+                cout << endl;
 
             }
         }

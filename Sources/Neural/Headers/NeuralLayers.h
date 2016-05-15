@@ -66,6 +66,7 @@ namespace neural {
 
 			const std::string Properties() const ;
 			void DataInput(const Buffer& input);
+			void DeltaInput(const Buffer& input);
 	};
 	class Output : public ILayer {
 		public:

@@ -78,6 +78,19 @@ void Input::DataInput(const Buffer& input) {
 		}
 	}
 }
+void Input::DeltaInput(const Buffer& input) {
+	assert(input.Depth3D() == deltas->Depth3D());
+	assert(input.Height3D() == deltas->Height3D());
+	assert(input.Width3D() == deltas->Width3D());
+
+	for(int i = 0; i < deltas->Depth3D(); ++i) {
+		for(int j = 0; j < deltas->Height3D(); ++j) {
+			for(int h = 0; h < deltas->Width3D(); ++h) {
+				deltas->ElementTo(i, j, h, input.ElementAt(i, j, h));
+			}
+		}
+	}
+}
 
 Output::Output(const std::string& name, size_t x) 
 	: ILayer(name, ILayer::Output)
@@ -363,7 +376,7 @@ void FullConnected::CalculateDeltas(ILayer* prev_layer) {
     FullConnected* deltas_vector = static_cast<FullConnected*>(prev_layer);
     for(int h = 0; h < weights->Height2D(); ++h) {
         double value = 0;
-        for(int i = 0; i < deltas_vector->deltas->Size(); ++i) {
+        for(int i = 0; i < deltas->Size(); ++i) {
             value += deltas->ElementAt(i) * weights->ElementAt(h, i);
         }
         deltas_vector->deltas->ElementTo(h, value);

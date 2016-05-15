@@ -2,12 +2,12 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-my::dword my::ImageBMPcore::correction() {
+my::dword my::ImageBMPcore::correction() const {
 	dword used_bits  = this->ImWidth() * this->bitCount;
 	dword used_bytes = Functional::used_bytes(used_bits);
 	return Functional::quadDivGE(used_bytes) - used_bytes;				
 }
-my::byte * my::ImageBMPcore::read(my::byte _count) {
+my::byte * my::ImageBMPcore::read(my::byte _count) const {
 	return Functional::read(_count, this->image, this->bigEndian);
 }
 my::dword my::ImageBMPcore::colorTableOffset() {
@@ -15,14 +15,14 @@ my::dword my::ImageBMPcore::colorTableOffset() {
 		if(this->bitCount <= 8) return 0x0000001A;
 	return 0x00000000;
 }
-my::dword my::ImageBMPcore::ImageSize() {
+my::dword my::ImageBMPcore::ImageSize() const {
 	return (Functional::used_bytes(Functional::absolute(this->imageWidth)*this->bitCount) + 
 				this->correction())*Functional::absolute(this->imageHeight);
 }
-my::dword my::ImageBMPcore::ImWidth() {
+my::dword my::ImageBMPcore::ImWidth() const {
 	return Functional::absolute(this->imageWidth);
 }
-my::dword my::ImageBMPcore::ImHeight() {
+my::dword my::ImageBMPcore::ImHeight() const {
 	return Functional::absolute(this->imageHeight);
 }
 my::ImageBMPcore::ImageBMPcore() {
@@ -163,7 +163,7 @@ void my::ImageBMPcore::load() {
 	this->clrTblSize = 1 << this->bitCount;
 	this->clrTblUsed = this->clrTblSize;
 }
-void my::ImageBMPcore::Info() {
+void my::ImageBMPcore::Info() const {
 
 	std::cout << std::hex;
 	std::cout << "data  offset: " << this->imageOffset << std::endl;
@@ -299,7 +299,7 @@ void my::ImageBMPcore::writeCoreData(const my::Matrix<byte> &_imatrix, const std
 	fwrite(&dbuffer, 4, 1, this->image);
 	return;
 }
-void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGB> & _matrix, const std::vector<my::RGB> & _colorTable){
+void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGB> & _matrix, const std::vector<my::RGB> & _colorTable) const {
 	
 	dword correction = this->correction();
 	dword height = this->ImHeight();
@@ -328,7 +328,7 @@ void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGB> & _matrix, const st
 	}
 	return;
 }
-void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGB> &_matrix){
+void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGB> &_matrix) const {
 
 	dword correction = this->correction();
 	dword height = this->ImHeight();
@@ -364,7 +364,7 @@ void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGB> &_matrix){
 	}
 	return;
 }
-void my::ImageBMPcore::lowChannelIMatrix(my::Matrix<my::byte> &_matrix){
+void my::ImageBMPcore::lowChannelIMatrix(my::Matrix<my::byte> &_matrix) const {
 
 	dword correction = this->correction();
 	dword height = this->ImHeight();
@@ -395,7 +395,7 @@ void my::ImageBMPcore::lowChannelIMatrix(my::Matrix<my::byte> &_matrix){
 	}
 	return;
 }
-my::Matrix<my::RGB> my::ImageBMPcore::ColorMatrix() {
+my::Matrix<my::RGB> my::ImageBMPcore::ColorMatrix() const {
 	
 	Matrix<RGB> result(this->ImHeight(), this->ImWidth());
 	
@@ -491,7 +491,7 @@ bool my::ImageBMPcore::Open(const char * _path) {
 	this->load();
 	return true;
 }
-std::vector<my::RGB> my::ImageBMPcore::ColorTable () {
+std::vector<my::RGB> my::ImageBMPcore::ColorTable() const {
 	
 	if(this->bitCount > 8) throw std::invalid_argument("Can not get color table of 8bit greater bitmap.");
 

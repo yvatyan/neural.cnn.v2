@@ -24,9 +24,9 @@ namespace my {
 			dword  clrTblUsed;
 			bool   compatibility;
 			
-			byte * read(byte _count);
+			byte * read(byte _count) const;
 			void writeCommonHeader();
-			dword correction();
+			dword correction() const;
 		private:	
 			virtual void load();
 			virtual void writeCoreBody();
@@ -35,23 +35,23 @@ namespace my {
 			virtual void writeCoreData(const Matrix<byte> & _imatrix, const std::vector<RGB> &_ctable);
 			virtual void writeCoreData(const Matrix<byte> & _imatrix, const std::vector<RGBA> &_ctable);
 			virtual dword colorTableOffset();
-			void lowChannelCMatrix(Matrix<RGBA> & _matrix, const std::vector<RGBA> & _colorTable);
-			void highChannelCMatrix(Matrix<RGBA> & _matrix);
-			void lowChannelCMatrix(Matrix<RGB> & _matrix, const std::vector<RGB> & _colorTable);
-			void highChannelCMatrix(Matrix<RGB> & _matrix);
-			void lowChannelIMatrix(Matrix<byte> & _matrix);
+			void lowChannelCMatrix(Matrix<RGBA> & _matrix, const std::vector<RGBA> & _colorTable) const;
+			void highChannelCMatrix(Matrix<RGBA> & _matrix) const;
+			void lowChannelCMatrix(Matrix<RGB> & _matrix, const std::vector<RGB> & _colorTable) const;
+			void highChannelCMatrix(Matrix<RGB> & _matrix) const;
+			void lowChannelIMatrix(Matrix<byte> & _matrix) const;
 		public:
 			ImageBMPcore();
-			virtual void Info();
-			virtual dword ImageSize();
-			virtual std::vector<RGB> ColorTable();
-			virtual std::vector<RGBA> ColorTableA();
+			virtual void Info() const;
+			virtual dword ImageSize() const;
+			virtual std::vector<RGB> ColorTable() const;
+			virtual std::vector<RGBA> ColorTableA() const;
 			
-			virtual dword ImWidth();
-			virtual dword ImHeight();
+			virtual dword ImWidth() const;
+			virtual dword ImHeight() const;
 			
-			virtual Matrix<RGB> ColorMatrix();
-			virtual Matrix<RGBA> ColorMatrixA();
+			virtual Matrix<RGB> ColorMatrix() const;
+			virtual Matrix<RGBA> ColorMatrixA() const;
 			virtual Matrix<byte> IndexMatrix();
 			virtual Matrix<bool> MonoMatrix();
 			virtual Matrix<bool> MonoMatrix(const std::vector<bool> _mask);

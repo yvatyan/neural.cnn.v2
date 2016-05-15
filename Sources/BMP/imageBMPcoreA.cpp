@@ -152,7 +152,7 @@ void my::ImageBMPcore::writeCoreData(const my::Matrix<byte> & _imatrix, const st
 	fwrite(&dbuffer, 4, 1, this->image);
 	return;
 }
-void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGBA> & _matrix, const std::vector<my::RGBA> & _colorTable){
+void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGBA> & _matrix, const std::vector<my::RGBA> & _colorTable) const{
 	
 	dword correction = this->correction();
 	dword height = this->ImHeight();
@@ -181,7 +181,7 @@ void my::ImageBMPcore::lowChannelCMatrix(my::Matrix<my::RGBA> & _matrix, const s
 	}
 	return;
 }
-void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGBA> & _matrix){
+void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGBA> & _matrix) const {
 
 	dword correction = this->correction();
 	dword height = this->ImHeight();
@@ -213,7 +213,7 @@ void my::ImageBMPcore::highChannelCMatrix(my::Matrix<my::RGBA> & _matrix){
 	}
 	return;
 }
-my::Matrix<my::RGBA> my::ImageBMPcore::ColorMatrixA() {
+my::Matrix<my::RGBA> my::ImageBMPcore::ColorMatrixA() const {
 	
 	Matrix<RGBA> result(this->ImHeight(), this->ImWidth());
 	
@@ -236,7 +236,7 @@ my::Matrix<bool> my::ImageBMPcore::MonoMatrix(const my::RGBA & _separator, bool 
 			result[i][j] = (colors[i][j] > _separator) || ((colors[i][j] != _separator) && !_crossedToNull);
 	return result;
 }
-std::vector<my::RGBA> my::ImageBMPcore::ColorTableA () {
+std::vector<my::RGBA> my::ImageBMPcore::ColorTableA () const {
 	
 	if(this->bitCount > 8) throw std::invalid_argument("Can not get color table of 8bit greater bitmap.");
 

@@ -70,9 +70,9 @@ void Activation::init() {
 	param1 = 0;	
 }
 Activation::Activation(Name function, double parameter = 1.) {
+	init();
 	selected_func = function;
 	param1 = parameter;
-	init();
 }
 double Activation::operator()(double value) const {
 	switch(selected_func) {
@@ -136,8 +136,8 @@ void Combination::init() {
 	accumulated_qty = 0;
 }
 Combination::Combination(Combination::Name function) {
-	selected_func = function;
 	init();
+	selected_func = function;
 }
 void Combination::Clear() {
 	init();

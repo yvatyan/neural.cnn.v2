@@ -1,8 +1,8 @@
 #include <iostream>
 #include <string>
 
-#include "Sources/Neural/Headers/ImageGrid.h"
-#include "Sources/BMP/Headers/imageBMPcore.h"
+#include "../Sources/Neural/Headers/ImageGrid.h"
+#include "../Sources/BMP/Headers/imageBMPcore.h"
 
 using namespace neural;
 using namespace my;
@@ -14,7 +14,7 @@ int main() {
     std::string test = "test.bmp";
     std::string testRuler = "ruler.bmp";
     image.Open(test.c_str());
-    
+
     ImageGrid grid(image, 3, 3);
 
     cout << "Grid Size: " << grid.GridSizeY() << 'x' << grid.GridSizeX() << endl;
@@ -23,19 +23,19 @@ int main() {
         for(int j = 0; j < grid.GridSizeX(); ++j) {
             
             Matrix<RGB> local_im = grid.ImageAt(i, j);
-            cout << "This is image at " << i << ' ' << j << endl;
-            for(int h = 0; h < local_im.Height(); ++h) {
-                for(int w = 0; w < local_im.Width(); ++w) {
+            cout << "This is image at " << i << ' ' << j << " with size: " << local_im.height() << 'x' << local_im.width() << endl;
+            for(int h = 0; h < local_im.height(); ++h) {
+                for(int w = 0; w < local_im.width(); ++w) {
                     cout << local_im[h][w] << ' ';
                 }
                 cout << endl;
             }
 
             Buffer local_buf = grid.ImageBufferAt(i, j);
-            cout << "\n\nThis is buffer at " << i << ' ' << j << endl;
+            cout << "\n\nThis is buffer at " << i << ' ' << j << " with size: " << local_buf.Depth3D() << 'x' << local_buf.Height3D() << 'x' << local_buf.Width3D() << endl;
             for(int d = 0; d < local_buf.Depth3D(); ++d) {
                 for(int h = 0; h < local_buf.Height3D(); ++h) {
-                    for(int w = 0; w < local_buf.Width3D(); ++i) {
+                    for(int w = 0; w < local_buf.Width3D(); ++w) {
                        cout << local_buf.ElementAt(d, h, w) << ' '; 
                     }
                     cout << endl;

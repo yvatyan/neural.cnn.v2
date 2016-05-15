@@ -340,12 +340,12 @@ FullConnected::FullConnected(const std::string& name, const Activation& func, si
    deltas = new Buffer(output_, 0.);
    weights = new Buffer(input, output_, 0.);
 }
-void FullConnected::CalculateOutput(Ilayer* prev_layer) {
+void FullConnected::CalculateOutput(ILayer* prev_layer) {
 	
 	assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
 
-    FullConnected* input_vector = static_cast<FullConnected>(prev_layer);
-    for(int h = 0; h < weights->Width2D(); ++h)
+    FullConnected* input_vector = static_cast<FullConnected*>(prev_layer);
+    for(int h = 0; h < weights->Width2D(); ++h) {
         double value = 0;
     	for(int i = 0; i < input_vector->output->Size(); ++i) {
             value += input_vector->function->act->operator()(input_vector->output->ElementAt(i)) * weights->ElementAt(i, h);
@@ -353,7 +353,7 @@ void FullConnected::CalculateOutput(Ilayer* prev_layer) {
 	    output->ElementTo(h, value); 
     }
 }
-void FullConnected::~FullConnected() {
+FullConnected::~FullConnected() {
     delete weights;
 }
 void FullConnected::CalculateDeltas(ILayer* prev_layer) {
@@ -381,12 +381,12 @@ void FullConnected::DoCorrections(ILayer* prev_layer, double ffactor) {
         }
     }
 }
-const std::string Properties() const {
+const std::string FullConnected::Properties() const {
     return "";
 }
 
-Simplifying::Simplifing(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x)
-    : Simplifying(name, ILayer::Simplifing, func)
+Simplifying::Simplifying(const std::string& name, const Combination& func, size_t kernelHeight, size_t kernelWidth, size_t z, size_t y, size_t x)
+    : ILayer(name, ILayer::Simplifying, func)
 {
     kernel_height = kernelHeight;
     kernel_width = kernelWidth;
@@ -396,23 +396,23 @@ Simplifying::Simplifing(const std::string& name, const Combination& func, size_t
 }
 void Simplifying::CalculateOutput(ILayer* prev_layer) {
     
-    assert(static_cast<Simplifying>(prev_layer)->output->Depth3D() == output->Depth3D());
-    assert(static_cast<Simplifying>(prev_layer)->output->Height3D() == output->Height3D());
-    assert(static_cast<Simplifying>(prev_layer)->output->Width3D() == output->Width3D());
+    assert(static_cast<Simplifying*>(prev_layer)->output->Depth3D() == output->Depth3D());
+    assert(static_cast<Simplifying*>(prev_layer)->output->Height3D() == output->Height3D());
+    assert(static_cast<Simplifying*>(prev_layer)->output->Width3D() == output->Width3D());
     assert(output->Height3D() % kernel_height == 0);
     assert(output->Width3D() % kernel_width == 0);
     
-    for(int d = 0; d < output->Depth3D(); ++d)
+    for(int d = 0; d < output->Depth3D(); ++d) {
         for(int h = 0; h < output->Height3D(); h += kernel_height) {
             for(int w = 0; w < output->Width3D(); w += kernel_width) {
                 for(int i = h; i < h + kernel_height; ++i) {
                     for(int j = w; j < w + kernel_width; ++j) {
-                        function->comb->operator+(static_cast<Simplyfing>(prev_layer)->ElementAt(d, i, j));
+                        function->comb->operator+(static_cast<Simplifying*>(prev_layer)->output->ElementAt(d, i, j));
                     }
                 }
                 for(int i = h; i < h + kernel_height; ++i) {
                     for(int j = w; j < w + kernel_width; ++j) {
-                        output->ElementTo(d, i, j, function->comb->operator());
+                        output->ElementTo(d, i, j, function->comb->operator()());
                     }
                 }
                 function->comb->Clear();
@@ -422,9 +422,9 @@ void Simplifying::CalculateOutput(ILayer* prev_layer) {
 }
 void Simplifying::CalculateDeltas(ILayer* prev_layer) {
 
-    assert(static_cast<Simplifying>(prev_layer)->deltas->Depth3D() == deltas->Depth3D());
-    assert(static_cast<Simplifying>(prev_layer)->deltas->Height3D() == deltas->Height3D());
-    assert(static_cast<Simplifying>(prev_layer)->deltas->Width3D() == deltas->Width3D());
+    assert(static_cast<Simplifying*>(prev_layer)->deltas->Depth3D() == deltas->Depth3D());
+    assert(static_cast<Simplifying*>(prev_layer)->deltas->Height3D() == deltas->Height3D());
+    assert(static_cast<Simplifying*>(prev_layer)->deltas->Width3D() == deltas->Width3D());
     assert(deltas->Height3D() % kernel_height == 0);
     assert(deltas->Width3D() % kernel_width == 0);
 
@@ -436,6 +436,6 @@ void Simplifying::CalculateDeltas(ILayer* prev_layer) {
         }
     }
 }
-const std::string Properties() const {
+const std::string Simplifying::Properties() const {
     return "";
 }

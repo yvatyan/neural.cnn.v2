@@ -74,7 +74,7 @@ void Input::DataInput(const Buffer& input) {
 	for(int i = 0; i < output->Depth3D(); ++i) {
 		for(int j = 0; j < output->Height3D(); ++j) {
 			for(int h = 0; h < output->Width3D(); ++h) {
-				output->ElementTo(i, j, h, input.ElementAt(i, j, h));
+				output->ElementTo(i, j, h, input.ElementAt(i, j, h) / 255.);
 				fileOut << input.ElementAt(i, j, h) << ' ';
 			}
 			fileOut << std::endl;
@@ -87,19 +87,21 @@ void Input::DeltaInput(const Buffer& input) {
 	assert(input.Height3D() == deltas->Height3D());
 	assert(input.Width3D() == deltas->Width3D());
 
+	fileOut << std::endl << std::endl << "input DELTAS of Input\n";
 	for(int i = 0; i < deltas->Depth3D(); ++i) {
 		for(int j = 0; j < deltas->Height3D(); ++j) {
 			for(int h = 0; h < deltas->Width3D(); ++h) {
 				deltas->ElementTo(i, j, h, input.ElementAt(i, j, h));
+				fileOut << deltas->ElementAt(i, j, h) << ' ';
 			}
+			fileOut << std::endl;
 		}
+		fileOut << "______________________\n";
 	}
-//	system("pause");
 }
 void Input::CalculateDeltas(ILayer* prev_layer) {
     
     assert(static_cast<Input*>(prev_layer)->deltas->Size() == deltas->Size());
-
     Input* deltas_vector = static_cast<Input*>(prev_layer);
     for(int i = 0; i < deltas->Size(); ++i) deltas_vector->deltas->ElementTo(i, deltas->ElementAt(i));
 }
@@ -321,7 +323,7 @@ void Pulling::CalculateOutput(ILayer* prev_layer) {
 						assert(alpha >= 0 && beta >= 0);
 						assert(alpha < static_cast<Pulling*>(prev_layer)->output->Height3D() && beta < static_cast<Pulling*>(prev_layer)->output->Width3D());
 
-                       function->comb->operator+( static_cast<Pulling*>(prev_layer)->output->ElementAt(d, alpha, beta) );
+						function->comb->operator+( static_cast<Pulling*>(prev_layer)->output->ElementAt(d, alpha, beta) );
                     }
                 }
                 output->ElementTo(d, h, w, function->comb->operator()());
@@ -371,10 +373,14 @@ FullConnected::FullConnected(const std::string& name, const Activation& func, si
 	}
    }
 }
+FullConnected::~FullConnected() {
+    delete weights;
+}
 void FullConnected::CalculateOutput(ILayer* prev_layer) {
 	
 	assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
-
+	
+	fileOut << std::endl << std::endl << "full connected : Output calculation\n";
     FullConnected* input_vector = static_cast<FullConnected*>(prev_layer);
     for(int h = 0; h < weights->Width2D(); ++h) {
         double value = 0;
@@ -382,41 +388,37 @@ void FullConnected::CalculateOutput(ILayer* prev_layer) {
             value += input_vector->function->act->operator()(input_vector->output->ElementAt(i)) * weights->ElementAt(i, h);
 	    }
 	    output->ElementTo(h, value); 
+		fileOut << h << ": " << value << std::endl;
     }
-}
-FullConnected::~FullConnected() {
-    delete weights;
 }
 void FullConnected::CalculateDeltas(ILayer* prev_layer) {
     
     assert(static_cast<FullConnected*>(prev_layer)->deltas->Size() == weights->Height2D());
-
+	
+	fileOut << std::endl << std::endl << "full connected : Deltas calculation\n";
     FullConnected* deltas_vector = static_cast<FullConnected*>(prev_layer);
-    fileOut << "\n\nCALCULATE DELTAS\n\n";
     for(int h = 0; h < weights->Height2D(); ++h) {
         double value = 0;
         for(int i = 0; i < deltas->Size(); ++i) {
             value += deltas->ElementAt(i) * weights->ElementAt(h, i);
-	    fileOut << value << '&' << deltas->ElementAt(i) * weights->ElementAt(h, i) << ' ';
         }
-	fileOut << std::endl;
         deltas_vector->deltas->ElementTo(h, value);
+		fileOut << h << ": " << value << std::endl;
     }
 }
 void FullConnected::DoCorrections(ILayer* prev_layer, double ffactor) {
     
     assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
-    fileOut << "\n\nDO CORECTIONS\n\n";
+    fileOut << std::endl << std::endl << "full connected : Correction calculation\n";
     for(int i = 0; i < weights->Height2D(); ++i) {
         for(int j = 0; j < weights->Width2D(); ++j) {
             // w[i, j] += in[i] * ffactor * f'(o[j]) * d[j];
             double value = static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) * ffactor * function->act->operator[](output->ElementAt(j)) * deltas->ElementAt(j);
-	    //fileOut << value << '\n' << static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) << "  " << ffactor << "  " <<  function->act->operator[](output->ElementAt(j)) <<  "  " << deltas->ElementAt(j);
-//	    std::cout << value << " " << function->act->operator[](output->ElementAt(j)) << " " << output->ElementAt(j) << std::endl;
-		std::cout << value << ' ';
             weights->ElementTo(i, j, weights->ElementAt(i, j) + value);
+			fileOut << value << " = " << static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) <<
+				" * (" << output->ElementAt(j) << " --> " << function->act->operator[](output->ElementAt(j)) << ") * " << deltas->ElementAt(j) << std::endl;
         }
-	fileOut << std::endl;
+		fileOut << std::endl;
     }
 }
 const std::string FullConnected::Properties() const {

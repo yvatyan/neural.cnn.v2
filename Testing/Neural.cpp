@@ -13,7 +13,7 @@ int main() {
     
     cout << fixed << setprecision(4);
 
-    Activation logistic(Activation::SoftStep, 1./18000);
+    Activation logistic(Activation::SoftStep, 0.03);
     Activation identity(Activation::Identity);
 
     ILayer* input  = new Input("in", 1, 28, 28);

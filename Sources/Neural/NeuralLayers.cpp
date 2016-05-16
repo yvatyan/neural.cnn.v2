@@ -3,6 +3,7 @@
 using namespace neural;
 
 #include <fstream>
+#include <iostream>
 
 std::ofstream fileOut("report.log");
 
@@ -74,8 +75,11 @@ void Input::DataInput(const Buffer& input) {
 		for(int j = 0; j < output->Height3D(); ++j) {
 			for(int h = 0; h < output->Width3D(); ++h) {
 				output->ElementTo(i, j, h, input.ElementAt(i, j, h));
+				fileOut << input.ElementAt(i, j, h) << ' ';
 			}
+			fileOut << std::endl;
 		}
+		fileOut << "______________________\n";
 	}
 }
 void Input::DeltaInput(const Buffer& input) {
@@ -90,6 +94,14 @@ void Input::DeltaInput(const Buffer& input) {
 			}
 		}
 	}
+//	system("pause");
+}
+void Input::CalculateDeltas(ILayer* prev_layer) {
+    
+    assert(static_cast<Input*>(prev_layer)->deltas->Size() == deltas->Size());
+
+    Input* deltas_vector = static_cast<Input*>(prev_layer);
+    for(int i = 0; i < deltas->Size(); ++i) deltas_vector->deltas->ElementTo(i, deltas->ElementAt(i));
 }
 
 Output::Output(const std::string& name, size_t x) 
@@ -124,7 +136,7 @@ void Output::CalculateOutput(ILayer* prevLayer) {
 const Buffer& Output::DataOutput() const {
 	return *output;
 }
-
+/*
 double Convolution::getHeightZeroPadding(size_t index, size_t input_h) const {
 
 	double zero_pad_h = (strides[index] * (output->Height3D() - 1) - input_h + layer_kernels[index]->Height3D()) / 2.;
@@ -276,7 +288,7 @@ void Convolution::DoCorrections(ILayer* prev_layer, double ffactor) {
 const std::string Convolution::Properties() const {
     return "";
 }
-
+*/
 bool Pulling::canConvertHeight(size_t input_data_height) const {
     return input_data_height % kernel_height == 0; 
 }
@@ -352,6 +364,12 @@ FullConnected::FullConnected(const std::string& name, const Activation& func, si
    output = new Buffer(output_, 0.); 
    deltas = new Buffer(output_, 0.);
    weights = new Buffer(input, output_, 0.);
+   for(int i = 0; i < weights->Height2D(); ++i) {
+   	for(int j = 0; j < weights->Width2D(); ++j) {
+		double value = (rand()%1000) / 1000.;
+		weights->ElementTo(i, j, value);
+	}
+   }
 }
 void FullConnected::CalculateOutput(ILayer* prev_layer) {
 	
@@ -374,24 +392,31 @@ void FullConnected::CalculateDeltas(ILayer* prev_layer) {
     assert(static_cast<FullConnected*>(prev_layer)->deltas->Size() == weights->Height2D());
 
     FullConnected* deltas_vector = static_cast<FullConnected*>(prev_layer);
+    fileOut << "\n\nCALCULATE DELTAS\n\n";
     for(int h = 0; h < weights->Height2D(); ++h) {
         double value = 0;
         for(int i = 0; i < deltas->Size(); ++i) {
             value += deltas->ElementAt(i) * weights->ElementAt(h, i);
+	    fileOut << value << '&' << deltas->ElementAt(i) * weights->ElementAt(h, i) << ' ';
         }
+	fileOut << std::endl;
         deltas_vector->deltas->ElementTo(h, value);
     }
 }
 void FullConnected::DoCorrections(ILayer* prev_layer, double ffactor) {
     
     assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
-    
+    fileOut << "\n\nDO CORECTIONS\n\n";
     for(int i = 0; i < weights->Height2D(); ++i) {
         for(int j = 0; j < weights->Width2D(); ++j) {
             // w[i, j] += in[i] * ffactor * f'(o[j]) * d[j];
             double value = static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) * ffactor * function->act->operator[](output->ElementAt(j)) * deltas->ElementAt(j);
+	    //fileOut << value << '\n' << static_cast<FullConnected*>(prev_layer)->output->ElementAt(i) << "  " << ffactor << "  " <<  function->act->operator[](output->ElementAt(j)) <<  "  " << deltas->ElementAt(j);
+//	    std::cout << value << " " << function->act->operator[](output->ElementAt(j)) << " " << output->ElementAt(j) << std::endl;
+		std::cout << value << ' ';
             weights->ElementTo(i, j, weights->ElementAt(i, j) + value);
         }
+	fileOut << std::endl;
     }
 }
 const std::string FullConnected::Properties() const {

@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <boost/tuple/tuple.hpp>
+//#include <boost/tuple/tuple.hpp>
 
 #include "NeuralFunctions.h"
 #include "NeuralData.h"
@@ -14,8 +14,8 @@
 
 namespace neural {
 
-	class Convolution;
-    void ReadKernels(std::istream& fileIn, Convolution& l);
+//	class Convolution;
+//    void ReadKernels(std::istream& fileIn, Convolution& l);
 
     class ILayer {
 		public:
@@ -67,6 +67,8 @@ namespace neural {
 			const std::string Properties() const ;
 			void DataInput(const Buffer& input);
 			void DeltaInput(const Buffer& input);
+
+			void CalculateDeltas(ILayer* prev_layer);
 	};
 	class Output : public ILayer {
 		public:
@@ -78,7 +80,7 @@ namespace neural {
 			void CalculateOutput(ILayer* prev_layer);
 			const std::string Properties() const ;
 			const Buffer& DataOutput() const ;
-	};
+	};/*
 	class Convolution : public ILayer {
 		private:
 			std::vector<Buffer*> layer_kernels;
@@ -100,7 +102,7 @@ namespace neural {
 			const std::string Properties() const;
 
             friend void ReadKernels(std::istream& fileIn, ILayer* layer);
-	};
+	};*/
 	class Pulling : public ILayer {
 		private:
 			size_t kernel_height;
@@ -142,7 +144,7 @@ namespace neural {
 			
 			const std::string Properties() const;			
 	};
-
+/*
 
     void ReadKernels(std::istream& fileIn, ILayer* layer) {
 
@@ -162,7 +164,7 @@ namespace neural {
                 }
             }
         }
-    }
+    }*/
 }
 #include "../NeuralLayers.cpp"
 

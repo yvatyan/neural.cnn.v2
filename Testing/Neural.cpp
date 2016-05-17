@@ -13,7 +13,7 @@ int main() {
     
     cout << fixed << setprecision(4);
 
-    Activation logistic(Activation::SoftStep, 0.03);
+    Activation logistic(Activation::ArcTan);
     Activation identity(Activation::Identity);
 
     ILayer* input  = new Input("in", 1, 28, 28);
@@ -36,7 +36,7 @@ int main() {
     imageNames[9] = "9.bmp";
 
     
-    for(int i = 0; i < 10; ++i) {
+    for(int i = 8; i < 10; ++i) {
         image.Open(imageNames[i].c_str());
         ImageGrid grid(image, 28, 28);
     
@@ -60,15 +60,17 @@ int main() {
                 cout << endl;
 		// Phase 1: Calculate difference
                 Buffer deltas(1, 1, 10, 0.);
-		cout << "Deltas : ";
+		cout << "Deltas :\n";
+		double loss = 0;
                 for(int s = 0; s < deltas.Size(); ++s) {
 
                     double value = 0.;
                     if(s == i) value = 1.;
                     deltas.ElementTo(s, std::pow((value - softmax(ou.ElementAt(s))), 2));
-		    cout << deltas.ElementAt(s) << ' ';
+		    cout << deltas.ElementAt(s) << "= " << value << "- (SoftMax = " << softmax(ou.ElementAt(s)) << ".\\ " << ou.ElementAt(s) << " )pow2\n";
+		    loss += std::pow(value - softmax(ou.ElementAt(s)), 2.);
                 }
-		cout << endl;
+		cout << endl << "LOSS: " << 0.5*loss << endl;
 		// Phase 2: Backward iteration
                 static_cast<Input*>(inputD)->DeltaInput(deltas);
                 inputD->CalculateDeltas(full2);

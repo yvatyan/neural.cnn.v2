@@ -377,7 +377,7 @@ FullConnected::~FullConnected() {
     delete weights;
 }
 void FullConnected::CalculateOutput(ILayer* prev_layer) {
-	
+static int skip = 0;	
 	assert(static_cast<FullConnected*>(prev_layer)->output->Size() == weights->Height2D());
 	
 	fileOut << std::endl << std::endl << "full connected : Output calculation\n";
@@ -386,10 +386,13 @@ void FullConnected::CalculateOutput(ILayer* prev_layer) {
         double value = 0;
     	for(int i = 0; i < input_vector->output->Size(); ++i) {
             value += input_vector->function->act->operator()(input_vector->output->ElementAt(i)) * weights->ElementAt(i, h);
+	    if(skip == 3) std::cout << value << " -- " << input_vector->function->act->operator()(input_vector->output->ElementAt(i)) * weights->ElementAt(i, h) << std::endl;
 	    }
+	   if(skip == 3) system("pause");
 	    output->ElementTo(h, value); 
-		fileOut << h << ": " << value << std::endl;
+	fileOut << h << ": " << value << std::endl;
     }
+    skip++;
 }
 void FullConnected::CalculateDeltas(ILayer* prev_layer) {
     

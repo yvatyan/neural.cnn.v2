@@ -71,6 +71,10 @@ namespace neural {
 			void CalculateDeltas(ILayer* prev_layer);
 	};
 	class Output : public ILayer {
+        private:
+            Buffer* training;
+            double loss;
+            Buffer* weights;
 		public:
 			Output(const std::string& name, size_t x);
 			Output(const std::string& name, size_t pse_h, size_t x);
@@ -78,6 +82,9 @@ namespace neural {
             ~Output() {};
 
 			void CalculateOutput(ILayer* prev_layer);
+            void CalculateDeltas(ILayer* prev_layer);
+            void DoCorrections(ILayer* prev_layer, double ffactor);
+
 			const std::string Properties() const ;
 			const Buffer& DataOutput() const ;
 	};/*
